@@ -3,197 +3,231 @@ import 'tag_model.dart';
 
 part 'image_model.g.dart';
 
-
 @JsonSerializable()
-class ImageModel extends Object {
-
+class ImageModel {
   @JsonKey(name: 'id')
-  int id;
+  int? id;
 
   @JsonKey(name: 'tags')
-  String tags;
+  String? tags;
 
-  List<TagModel> tagTagModelList;
+  List<TagModel>? tagTagModelList;
 
-  int pages; // 用于确定来自第几个页面的，防止数据重复造成 hero key 冲突的问题。
+  int? pages;
 
   @JsonKey(name: 'collect_status')
-  ImageCollectStatus collectStatus = ImageCollectStatus.star;
+  ImageCollectStatus? collectStatus;
 
   @JsonKey(name: 'download_status')
-  ImageDownloadStatus downloadStatus  = ImageDownloadStatus.none;
+  ImageDownloadStatus? downloadStatus;
 
   @JsonKey(name: 'download_path')
-  String downloadPath = "";
+  String? downloadPath;
 
   @JsonKey(name: 'created_at')
-  int createdAt;
+  int? createdAt;
 
   @JsonKey(name: 'updated_at')
-  int updatedAt;
+  int? updatedAt;
 
   @JsonKey(name: 'creator_id')
-  int creatorId;
+  int? creatorId;
 
   @JsonKey(name: 'author')
-  String author;
+  String? author;
 
   @JsonKey(name: 'change')
-  int change;
+  int? change;
 
   @JsonKey(name: 'source')
-  String source;
+  String? source;
 
   @JsonKey(name: 'score')
-  int score;
+  int? score;
 
   @JsonKey(name: 'md5')
-  String md5;
+  String? md5;
 
   @JsonKey(name: 'file_size')
-  int fileSize;
+  int? fileSize;
 
   @JsonKey(name: 'file_ext')
-  String fileExt;
+  String? fileExt;
 
   @JsonKey(name: 'file_url')
-  String fileUrl;
+  String? fileUrl;
 
   @JsonKey(name: 'is_shown_in_index')
-  bool isShownInIndex;
+  bool? isShownInIndex;
 
   @JsonKey(name: 'preview_url')
-  String previewUrl;
+  String? previewUrl;
 
   @JsonKey(name: 'preview_width')
-  int previewWidth;
+  int? previewWidth;
 
   @JsonKey(name: 'preview_height')
-  int previewHeight;
+  int? previewHeight;
 
   @JsonKey(name: 'actual_preview_width')
-  int actualPreviewWidth;
+  int? actualPreviewWidth;
 
   @JsonKey(name: 'actual_preview_height')
-  int actualPreviewHeight;
+  int? actualPreviewHeight;
 
   @JsonKey(name: 'sample_url')
-  String sampleUrl;
+  String? sampleUrl;
 
   @JsonKey(name: 'sample_width')
-  int sampleWidth;
+  int? sampleWidth;
 
   @JsonKey(name: 'sample_height')
-  int sampleHeight;
+  int? sampleHeight;
 
   @JsonKey(name: 'sample_file_size')
-  int sampleFileSize;
+  int? sampleFileSize;
 
   @JsonKey(name: 'jpeg_url')
-  String jpegUrl;
+  String? jpegUrl;
 
   @JsonKey(name: 'jpeg_width')
-  int jpegWidth;
+  int? jpegWidth;
 
   @JsonKey(name: 'jpeg_height')
-  int jpegHeight;
+  int? jpegHeight;
 
   @JsonKey(name: 'jpeg_file_size')
-  int jpegFileSize;
+  int? jpegFileSize;
 
   @JsonKey(name: 'rating')
-  String rating;
+  String? rating;
 
   @JsonKey(name: 'is_rating_locked')
-  bool isRatingLocked;
+  bool? isRatingLocked;
 
   @JsonKey(name: 'has_children')
-  bool hasChildren;
+  bool? hasChildren;
 
   @JsonKey(name: 'status')
-  String status;
+  String? status;
 
   @JsonKey(name: 'is_pending')
-  bool isPending;
+  bool? isPending;
 
   @JsonKey(name: 'width')
-  int width;
+  int? width;
 
   @JsonKey(name: 'height')
-  int height;
+  int? height;
 
   @JsonKey(name: 'is_held')
-  bool isHeld;
+  bool? isHeld;
 
   @JsonKey(name: 'frames_pending_string')
-  String framesPendingString;
+  String? framesPendingString;
 
   @JsonKey(name: 'frames_pending')
-  List<dynamic> framesPending;
+  List<dynamic>? framesPending;
 
   @JsonKey(name: 'frames_string')
-  String framesString;
+  String? framesString;
 
   @JsonKey(name: 'frames')
-  List<dynamic> frames;
+  List<dynamic>? frames;
 
   @JsonKey(name: 'is_note_locked')
-  bool isNoteLocked;
+  bool? isNoteLocked;
 
   @JsonKey(name: 'last_noted_at')
-  int lastNotedAt;
+  int? lastNotedAt;
 
   @JsonKey(name: 'last_commented_at')
-  int lastCommentedAt;
+  int? lastCommentedAt;
 
-  String dataSourceName;
+  String? dataSourceName;
 
-  ImageModel(this.id,this.tags,this.createdAt,this.updatedAt,this.creatorId,this.author,this.change,this.source,this.score,this.md5,this.fileSize,this.fileExt,this.fileUrl,this.isShownInIndex,this.previewUrl,this.previewWidth,this.previewHeight,this.actualPreviewWidth,this.actualPreviewHeight,this.sampleUrl,this.sampleWidth,this.sampleHeight,this.sampleFileSize,this.jpegUrl,this.jpegWidth,this.jpegHeight,this.jpegFileSize,this.rating,this.isRatingLocked,this.hasChildren,this.status,this.isPending,this.width,this.height,this.isHeld,this.framesPendingString,this.framesPending,this.framesString,this.frames,this.isNoteLocked,this.lastNotedAt,this.lastCommentedAt,);
+  ImageModel(
+    this.id,
+    this.tags,
+    this.createdAt,
+    this.updatedAt,
+    this.creatorId,
+    this.author,
+    this.change,
+    this.source,
+    this.score,
+    this.md5,
+    this.fileSize,
+    this.fileExt,
+    this.fileUrl,
+    this.isShownInIndex,
+    this.previewUrl,
+    this.previewWidth,
+    this.previewHeight,
+    this.actualPreviewWidth,
+    this.actualPreviewHeight,
+    this.sampleUrl,
+    this.sampleWidth,
+    this.sampleHeight,
+    this.sampleFileSize,
+    this.jpegUrl,
+    this.jpegWidth,
+    this.jpegHeight,
+    this.jpegFileSize,
+    this.rating,
+    this.isRatingLocked,
+    this.hasChildren,
+    this.status,
+    this.isPending,
+    this.width,
+    this.height,
+    this.isHeld,
+    this.framesPendingString,
+    this.framesPending,
+    this.framesString,
+    this.frames,
+    this.isNoteLocked,
+    this.lastNotedAt,
+    this.lastCommentedAt,
+  );
 
-  factory ImageModel.fromJson(Map<String, dynamic> srcJson) => _$ImageModelFromJson(srcJson);
+  factory ImageModel.fromJson(Map<String, dynamic> srcJson) =>
+      _$ImageModelFromJson(srcJson);
 
   Map<String, dynamic> toJson() => _$ImageModelToJson(this);
 
-  bool isCollect() {
-    if (this.collectStatus == ImageCollectStatus.star) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  bool isCollect() => collectStatus == ImageCollectStatus.star;
 
-  bool isDownload() {
-    if (this.downloadStatus == ImageDownloadStatus.success
-        && this.downloadPath != "" && this.downloadPath != null) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  bool isDownload() =>
+      downloadStatus == ImageDownloadStatus.success &&
+      downloadPath != null &&
+      downloadPath!.isNotEmpty;
 
-  setStatusByImage(ImageModel model) {
-    this.collectStatus = model.collectStatus;
-    this.downloadStatus = model.downloadStatus;
+  void setStatusByImage(ImageModel model) {
+    collectStatus = model.collectStatus;
+    downloadStatus = model.downloadStatus;
     if (model.downloadStatus == ImageDownloadStatus.success) {
-      this.downloadPath = model.downloadPath;
-    } else if (model.downloadStatus != null){
-      this.downloadStatus = ImageDownloadStatus.error;
+      downloadPath = model.downloadPath;
+    } else if (model.downloadStatus != null) {
+      downloadStatus = ImageDownloadStatus.error;
     }
   }
-
-
 }
 
-
-
 enum ImageDownloadStatus {
+  @JsonValue(0)
   none,
+  @JsonValue(1)
   pending,
+  @JsonValue(2)
   success,
+  @JsonValue(3)
   error,
 }
 
 enum ImageCollectStatus {
+  @JsonValue(0)
   star,
-  unStar
+  @JsonValue(1)
+  unStar,
 }
