@@ -1,39 +1,33 @@
-import 'package:yande/appliction.dart';
 import 'package:dio/dio.dart';
+import 'package:yande/appliction.dart';
 import 'package:yande/dao/init_dao.dart';
 import 'package:yande/http/yande/constant/api.dart';
 import 'package:yande/http/yande/imageListApi.dart';
 import 'package:yande/http/yande/tagApi.dart';
-import 'dart:async';
-
 import 'package:yande/model/image_model.dart';
 import 'package:yande/model/tag_model.dart';
 
-
 class YandeImageHttpDataSource implements AppHttpDataSource {
-
-  String sourceName = YandeApi.sourceName;
-
-  Dio http;
-  YandeImageListApi _imageListApi;
-
-  TagApi _tagApi;
-
-  YandeImageHttpDataSource(Dio http) {
-    this.http = http;
-    this._tagApi = TagApi(this);
-    this._imageListApi = YandeImageListApi(this);
-  }
-
-
+  @override
+  final String sourceName = YandeApi.sourceName;
 
   @override
-  Future<ImageModel> fetchImageById(int id) {
-    return null;
+  final Dio http;
+  late final YandeImageListApi _imageListApi;
+  late final TagApi _tagApi;
+
+  YandeImageHttpDataSource(this.http) {
+    _imageListApi = YandeImageListApi(this);
+    _tagApi = TagApi(this);
   }
 
   @override
-  Future<List<ImageModel>> fetchImageByPage(int page, int limit) async{
+  Future<ImageModel?> fetchImageById(int id) {
+    return _imageListApi.fetchImageById('$id');
+  }
+
+  @override
+  Future<List<ImageModel>> fetchImageByPage(int page, int limit) {
     return _imageListApi.fetchImageByPage(page, limit);
   }
 
@@ -46,7 +40,4 @@ class YandeImageHttpDataSource implements AppHttpDataSource {
   Future<List<ImageModel>> fetchImageByTag(String tag, int page, int limit) {
     return _imageListApi.getIndexListByTags(tag, page, limit);
   }
-
-
-
 }

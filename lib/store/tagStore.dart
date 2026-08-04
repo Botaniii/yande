@@ -1,83 +1,75 @@
 import 'package:yande/model/tag_model.dart';
-import 'dart:async';
-
 import 'package:yande/service/tagService.dart';
 
 class TagStore {
-  static List<TagModel> shortCutList;
-  static List<TagModel> blockedTag;
+  static List<TagModel> shortCutList = <TagModel>[];
+  static List<TagModel> blockedTag = <TagModel>[];
 
   static Future<void> init() async {
-    TagStore.shortCutList = [];
-    TagStore.blockedTag = [];
-    await TagStore._getShortcutList();
-    await TagStore._getBlockTagList();
-
+    shortCutList = <TagModel>[];
+    blockedTag = <TagModel>[];
+    await _getShortcutList();
+    await _getBlockTagList();
   }
 
-  static Future<void> _getShortcutList() async{
-    TagStore.shortCutList = await TagService.getAllCollectTag()??[];
+  static Future<void> _getShortcutList() async {
+    shortCutList = await TagService.getAllCollectTag();
   }
 
   static Future<void> _getBlockTagList() async {
-    TagStore.blockedTag = await TagService.getAllBlockTag()??[];
+    blockedTag = await TagService.getAllBlockTag();
   }
 
-  static void collectTag(TagModel tag) async {
+  static Future<void> collectTag(TagModel tag) async {
     tag.collectStatus = TagCollectStatus.collected;
     await TagService.setCollectStatus(tag);
-
-    TagStore.removeTagFromBlockList(tag);
-
-    TagStore.shortCutList.add(tag);
+    removeTagFromBlockList(tag);
+    shortCutList.add(tag);
   }
 
-  static void unCollectTag(TagModel tag) async {
+  static Future<void> unCollectTag(TagModel tag) async {
     tag.collectStatus = TagCollectStatus.none;
     await TagService.setCollectStatus(tag);
-    TagStore.removeTagFromShortCutList(tag);
+    removeTagFromShortCutList(tag);
   }
 
-
-  static void block(TagModel tag) async {
+  static Future<void> block(TagModel tag) async {
     tag.collectStatus = TagCollectStatus.block;
     await TagService.setCollectStatus(tag);
-    TagStore.blockedTag.add(tag);
+    blockedTag.add(tag);
   }
 
-  static void unblock(TagModel tag) async {
+  static Future<void> unblock(TagModel tag) async {
     tag.collectStatus = TagCollectStatus.none;
     await TagService.setCollectStatus(tag);
-
-    TagStore.removeTagFromShortCutList(tag);
-
-    TagStore.blockedTag.removeWhere((item) => item.name == tag.name);
+    removeTagFromShortCutList(tag);
+    blockedTag.removeWhere((item) => item.name == tag.name);
   }
 
   static void removeTagFromBlockList(TagModel tag) {
-    TagStore.blockedTag.removeWhere((item) => item.name == tag.name);
+    blockedTag.removeWhere((item) => item.name == tag.name);
   }
 
   static void removeTagFromShortCutList(TagModel tag) {
-    TagStore.shortCutList.removeWhere((item) => item.name == tag.name);
+    shortCutList.removeWhere((item) => item.name == tag.name);
   }
 
-  static bool isBlockedByName(String name){
-    for(TagModel tag in TagStore.blockedTag) {
-      if (name.contains(tag.name)) {
+  static bool isBlockedByName(String? name) {
+    if (name == null) return false;
+    for (final tag in blockedTag) {
+      if (name.contains(tag.name ?? '')) {
         return true;
       }
     }
     return false;
   }
 
-  static bool isBlocked(TagModel tagModel){
-    return TagStore.isBlockedByName(tagModel.name);
+  static bool isBlocked(TagModel tagModel) {
+    return isBlockedByName(tagModel.name);
   }
 
-
-  static bool isCollectByName(String name){
-    for(TagModel tag in TagStore.shortCutList) {
+  static bool isCollectByName(String name) {
+    for (final tag in shortCutList) {
       if (tag.name == name) {
         return true;
       }
@@ -85,14 +77,12 @@ class TagStore {
     return false;
   }
 
-  static bool isCollect(TagModel tagModel){
-    for(TagModel tag in TagStore.shortCutList) {
+  static bool isCollect(TagModel tagModel) {
+    for (final tag in shortCutList) {
       if (tag.name == tagModel.name) {
         return true;
       }
     }
     return false;
   }
-
-
 }

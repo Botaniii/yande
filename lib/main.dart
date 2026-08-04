@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:yande/appliction.dart';
 import 'package:yande/route/route.dart';
 import 'package:yande/store/store.dart';
 
-void main() => runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Application.init();
+  await TagStore.init();
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
-
-  MyApp() {
-    TagStore.init();
-  }
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'yande',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
       routes: _buildRoutes(),
     );

@@ -1,304 +1,161 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:yande/model/image_model.dart';
 import 'init_dao.dart';
-import 'dart:async';
 
 class ImageDao {
-  DaoDataSource source;
+  final DaoDataSource source;
+
   ImageDao(this.source);
-  Future<ImageModel> isImageCollectExistById(int id, [Database database]) async {
-    bool isHasDatabase = true;
-    if (database == null) {
-      isHasDatabase = false;
-      database =await this.source.getDatabase();
-    }
+
+  Future<ImageModel?> getImageById(int id, [Database? database]) async {
+    final db = database ?? await source.getDatabase();
     try {
-      List list = await database.rawQuery(
-          _ImageCollectDaoUtils.generateSearchCollectByIdRawSql(id)
+      final list = await db.query(
+        MyDateBaseValue.Image,
+        where: '${ImageTableColumn.id} = ?',
+        whereArgs: <Object?>[id],
+        limit: 1,
       );
-      if (list != null && list.length > 0) {
-        return ImageModel.fromJson(Map.from(list[0]));
-      } else {
-        return null;
-      }
-    } catch(e) {
-      print(e);
+      return list.isEmpty
+          ? null
+          : ImageModel.fromJson(Map<String, dynamic>.from(list.first));
+    } catch (e) {
       return null;
-    } finally {
-      if (!isHasDatabase) {
-        await database.close();
-      }
     }
   }
 
-  Future<ImageModel> getImageById(String id, [Database database]) async {
-    bool isHasDatabase = true;
-    if (database == null) {
-      isHasDatabase = false;
-      database =await this.source.getDatabase();
-    }
+  Future<bool> isImageExistById(int id, [Database? database]) async {
+    final db = database ?? await source.getDatabase();
     try {
-      List list = await database.query(
-          MyDateBaseValue.Image,
-          where: 'id = ?',
-          whereArgs: [id]
+      final list = await db.query(
+        MyDateBaseValue.Image,
+        columns: <String>[ImageTableColumn.id],
+        where: '${ImageTableColumn.id} = ?',
+        whereArgs: <Object?>[id],
+        limit: 1,
       );
-      if (list != null && list.length > 0) {
-        return ImageModel.fromJson(Map.from(list[0]));
-      } else {
-        return null;
-      }
-    } catch(e) {
-      print(e);
-      return null;
-    } finally {
-      if (!isHasDatabase) {
-        await database.close();
-      }
-    }
-  }
-  Future<bool> isImageExistById(int id, [Database database]) async {
-    bool isHasDatabase = true;
-    if (database == null) {
-      isHasDatabase = false;
-      database =await this.source.getDatabase();
-    }
-    try {
-      List list = await database.rawQuery(
-          _ImageCollectDaoUtils.generateSearchImageByIdRawSql(id)
-      );
-      if (list != null && list.length > 0) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch(e) {
-      print(e);
-      return null;
-    } finally {
-      if (!isHasDatabase) {
-        await database.close();
-      }
-    }
-  }
-
-
-  Future<bool> isImageDetailExistById(int id, [Database database]) async {
-    bool isHasDatabase = true;
-    if (database == null) {
-      isHasDatabase = false;
-      database =await this.source.getDatabase();
-    }
-    try {
-      String rawSql = _ImageDaoUtils.generateSearchImageByIdRawSql(id);
-      List list = await database.rawQuery(
-          rawSql
-      );
-      if (list != null && list.length > 0) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch(e) {
-      print(e);
+      return list.isNotEmpty;
+    } catch (e) {
       return false;
-    } finally {
-      if (!isHasDatabase) {
-        await database.close();
-      }
     }
   }
 
   Future<bool> collectImage(ImageModel image) async {
-    Database database =await this.source.getDatabase();
+    final db = await source.getDatabase();
     try {
-      String insertImageSql = _ImageDaoUtils.generateImageInsertRawSql(image);
-      bool isImageDetailExist =
-        await this.isImageDetailExistById(image.id, database);
-
-      if (!isImageDetailExist) {
-        await database.rawInsert(insertImageSql);
+      final exists = await isImageExistById(image.id ?? -1, db);
+      if (!exists) {
+        await db.insert(
+          MyDateBaseValue.Image,
+          _ImageDaoUtils.toDbMap(image),
+        );
       } else {
-        await this.updateCollectStatus(image, database);
+        await db.update(
+          MyDateBaseValue.Image,
+          <String, Object?>{
+            ImageTableColumn.collectStatus: image.collectStatus?.index,
+          },
+          where: '${ImageTableColumn.id} = ?',
+          whereArgs: <Object?>[image.id],
+        );
       }
       return true;
-    } catch(e) {
-      print(e);
+    } catch (e) {
       return false;
-    } finally {
-      await database.close();
     }
   }
 
-  Future<bool> updateDownloadImagePath(
-      ImageModel image,
-      [Database database]
-      ) async {
-    bool isHasDatabase = true;
-    if (database == null) {
-      isHasDatabase = false;
-      database =await this.source.getDatabase();
-    }
+  Future<void> updateDownloadImageStatus(ImageModel image) async {
+    final db = await source.getDatabase();
     try {
-      String rawSql = _ImageDownloadDaoUtils
-          .generateImageDownloadPathUpdateRawSql(image);
-      await database.rawUpdate(
-          rawSql
-      );
-      return true;
-    } catch(e) {
-      print(e);
-      return false;
-    } finally {
-      if (!isHasDatabase) {
-        await database.close();
-      }
-    }
-  }
-
-  Future<bool> updateDownloadImageStatus(ImageModel image) async {
-    Database database =await this.source.getDatabase();
-    try {
-      String insertImageSql = _ImageDaoUtils.generateImageInsertRawSql(image);
-      String collectImageSql =
-      _ImageDownloadDaoUtils.generateImageDownloadStatusUpdateRawSql(image);
-      bool isImageDetailExist =
-      await this.isImageDetailExistById(image.id, database);
-      if (!isImageDetailExist) {
-        await database.rawInsert(insertImageSql);
+      final exists = await isImageExistById(image.id ?? -1, db);
+      if (!exists) {
+        await db.insert(
+          MyDateBaseValue.Image,
+          _ImageDaoUtils.toDbMap(image),
+        );
       } else {
-        await database.rawUpdate(collectImageSql);
+        final values = <String, Object?>{
+          ImageTableColumn.downloadStatus: image.downloadStatus?.index,
+        };
+        if (image.downloadStatus == ImageDownloadStatus.success) {
+          values[ImageTableColumn.downloadPath] = image.downloadPath;
+        }
+        await db.update(
+          MyDateBaseValue.Image,
+          values,
+          where: '${ImageTableColumn.id} = ?',
+          whereArgs: <Object?>[image.id],
+        );
       }
-
-      if (image.downloadStatus == ImageDownloadStatus.success) {
-        await this.updateDownloadImagePath(image, database);
-      }
-
-      return true;
-    } catch(e) {
-      print(e);
-      return false;
-    } finally {
-      await database.close();
+    } catch (e) {
+      // 下载状态更新失败不影响调用方继续（保持幂等）。
     }
   }
 
   Future<List<ImageModel>> getAllCollectedImage(int page, int limit) async {
-
-    Database database =await this.source.getDatabase();
+    final db = await source.getDatabase();
     try {
-      List list =await database.query(
+      final list = await db.query(
         MyDateBaseValue.Image,
-        where: 'collect_status = ${ImageCollectStatus.star?.index}',
+        where: '${ImageTableColumn.collectStatus} = ?',
+        whereArgs: <Object?>[ImageCollectStatus.star.index],
         offset: (page - 1) * limit,
         limit: limit,
-
       );
-
-      List<ImageModel> imageList = List();
-      for (Map item in list) {
-        Map map = Map<String, dynamic>.from(item);
-        imageList.add(ImageModel.fromJson(map));
-      }
-      return imageList;
-    } catch(e) {
-      print(e);
-      return null;
-    } finally {
-      await database.close();
+      return list
+          .map((item) => ImageModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    } catch (e) {
+      return <ImageModel>[];
     }
   }
 
-  Future<void> updateCollectStatus(ImageModel image,  [Database database]) async {
-    bool isHasDatabase = true;
-    if (database == null) {
-      isHasDatabase = false;
-      database =await this.source.getDatabase();
-    }
+  Future<void> updateCollectStatus(
+    ImageModel image, [
+    Database? database,
+  ]) async {
+    final db = database ?? await source.getDatabase();
     try {
-      await database.rawUpdate(
-          _ImageCollectDaoUtils.generateImageCollectUpdateRawSql(image)
+      await db.update(
+        MyDateBaseValue.Image,
+        <String, Object?>{
+          ImageTableColumn.collectStatus: image.collectStatus?.index,
+        },
+        where: '${ImageTableColumn.id} = ?',
+        whereArgs: <Object?>[image.id],
       );
-    } catch(e) {
-      print(e);
-    } finally {
-      if (!isHasDatabase) {
-        await database.close();
-      }
+    } catch (e) {
+      // 忽略更新失败。
     }
   }
 }
-
-class _ImageDownloadDaoUtils {
-  static String generateImageDownloadPathUpdateRawSql(ImageModel image) {
-    return "UPDATE ${MyDateBaseValue.Image} SET "
-        "${ImageTableColumn.downloadPath} = '${image.downloadPath}' "
-        "where "
-        "id = ${image.id}";
-  }
-
-  static String generateImageDownloadStatusUpdateRawSql(ImageModel image) {
-    return "UPDATE ${MyDateBaseValue.Image} SET "
-        "${ImageTableColumn.downloadStatus} = ${image.downloadStatus?.index} "
-        "where "
-        "id = ${image.id}";
-  }
-}
-
 
 class _ImageDaoUtils {
-  static String generateSearchImageByIdRawSql(int id){
-    return "select * from ${MyDateBaseValue.Image} where id = $id";
+  static Map<String, Object?> toDbMap(ImageModel image) {
+    return <String, Object?>{
+      ImageTableColumn.id: image.id,
+      ImageTableColumn.tags: image.tags,
+      ImageTableColumn.author: image.author,
+      ImageTableColumn.fileUrl: image.fileUrl,
+      ImageTableColumn.source: image.source,
+      ImageTableColumn.fileSize: image.fileSize,
+      ImageTableColumn.fileExt: image.fileExt,
+      ImageTableColumn.previewUrl: image.previewUrl,
+      ImageTableColumn.previewWidth: image.previewWidth,
+      ImageTableColumn.previewHeight: image.previewHeight,
+      ImageTableColumn.rating: image.rating,
+      ImageTableColumn.width: image.width,
+      ImageTableColumn.height: image.height,
+      ImageTableColumn.sampleUrl: image.sampleUrl,
+      ImageTableColumn.jpegUrl: image.jpegUrl,
+      ImageTableColumn.jpegWidth: image.jpegWidth,
+      ImageTableColumn.jpegHeight: image.jpegHeight,
+      ImageTableColumn.jpegFileSize: image.jpegFileSize,
+      ImageTableColumn.dataSourceName: image.dataSourceName,
+      ImageTableColumn.collectStatus: image.collectStatus?.index,
+      ImageTableColumn.downloadStatus: image.downloadStatus?.index,
+      ImageTableColumn.downloadPath: image.downloadPath,
+    };
   }
-
-  static String generateImageInsertRawSql(ImageModel image) {
-    return "insert into ${MyDateBaseValue.Image}"
-        "(id, tags, author, "
-        "file_url, source, file_size,"
-        "file_ext, preview_url,"
-        "preview_width, preview_height, rating,"
-        "sample_url,jpeg_url, "
-        "jpeg_height, jpeg_width, jpeg_file_size, "
-        "download_status, download_path, collect_status, width, height ) "
-        "values"
-        " (${image.id},'${image.tags}','${image.author}',"
-        "'${image.fileUrl}','${image.source}',${image.fileSize},"
-        "'${image.fileExt}','${image.previewUrl}',"
-        "'${image.previewWidth}',${image.previewHeight},'${image.rating}',"
-        "'${image.sampleUrl}','${image.jpegUrl}',"
-        "${image.jpegHeight},${image.jpegWidth},${image.jpegFileSize},"
-        "${image.downloadStatus?.index},${image.downloadPath},${image.collectStatus?.index},"
-        "${image.width}, ${image.height})";
-  }
-  static String generateDeleteImageByIdRawSql(int id){
-    return "delete from ${MyDateBaseValue.Image} where id = $id";
-  }
-
 }
-
-class _ImageCollectDaoUtils {
-  static String generateGetAllCollectedImageRawSql(){
-    return "select * from ${MyDateBaseValue.Image} where "
-        "collect_status = ${ImageCollectStatus.star?.index} ";
-  }
-
-  static String generateImageCollectUpdateRawSql(ImageModel image) {
-    return "UPDATE ${MyDateBaseValue.Image} SET "
-        "${ImageTableColumn.collectStatus} = ${image.collectStatus?.index} "
-        "where "
-        "id = ${image.id}";
-
-  }
-
-  static String generateSearchCollectByIdRawSql(int id) {
-    return "select * from ${MyDateBaseValue.Image} where "
-        "collect_status = ${ImageCollectStatus.star?.index} and id = $id";
-  }
-
-  static String generateSearchImageByIdRawSql(int id) {
-    return "select * from ${MyDateBaseValue.Image} where "
-        "id = $id";
-  }
-
-}
-

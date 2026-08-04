@@ -1,85 +1,72 @@
 import 'package:dio/dio.dart';
 import 'package:yande/appliction.dart';
-import 'package:yande/dao/image_dao.dart';
 import 'package:yande/dao/init_dao.dart';
 import 'package:yande/http/yande/YandeHttpDataSource.dart';
 import 'package:yande/http/yande/constant/api.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/model/tag_model.dart';
-import 'dart:async';
 
 class YandeImageListApi {
-  YandeImageHttpDataSource source;
-
+  final YandeImageHttpDataSource source;
 
   YandeImageListApi(this.source);
 
-  get _daoDataSource {
-
-    return Application.getInstance().dataPool.getSource(DaoDataSource.name);
+  AppDaoDataSource get _daoDataSource {
+    return Application.getInstance().dataPool
+        .getSource(DaoDataSource.name) as AppDaoDataSource;
   }
 
-  Future<ImageModel> fetchImageById(String id) {
-    return null;
+  Future<ImageModel?> fetchImageById(String id) async {
+    final url = '${YandeApi.post}?tags=id:$id&limit=1';
+    final res = await source.http.get<List<dynamic>>(url);
+    final list = convertMapToImageModel(res);
+    return list.isEmpty ? null : list.first;
   }
 
-  Future<List<ImageModel>> fetchImageByPage(int page, int limit) async{
-    String url = YandeApi.post + '?page=$page&limit=$limit';
-    Response<List<dynamic>> res = await this.source.http.get(url);
+  Future<List<ImageModel>> fetchImageByPage(int page, int limit) async {
+    final url = '${YandeApi.post}?page=$page&limit=$limit';
+    final res = await source.http.get<List<dynamic>>(url);
+    return _decorate(res, page);
+  }
 
-    List<ImageModel> list = convertMapToImageModel(res);
-    List<ImageModel> trueList = List();
-    for (ImageModel item in list) {
+  Future<List<ImageModel>> getIndexListByTags(
+    String tags,
+    int pages,
+    int limit,
+  ) async {
+    final url = '${YandeApi.post}?tags=$tags&page=$pages&limit=$limit';
+    final res = await source.http.get<List<dynamic>>(url);
+    return _decorate(res, pages);
+  }
+
+  /// 合并本地收藏/下载状态，并解析 tags 字符串。
+  Future<List<ImageModel>> _decorate(
+      Response<List<dynamic>> res, int page) async {
+    final list = convertMapToImageModel(res);
+    final trueList = <ImageModel>[];
+    for (final item in list) {
       if (item.tags != null) {
-        item.tagTagModelList = convertTagStringToList(item.tags);
+        item.tagTagModelList = convertTagStringToList(item.tags!);
       }
-      ImageModel dto =await this._daoDataSource.fetchImageById(item.id);
-      if(dto != null) {
+      final dto = await _daoDataSource.fetchImageById(item.id ?? -1);
+      if (dto != null) {
         item.setStatusByImage(dto);
       }
-      item.dataSourceName = this.source.sourceName;
+      item.dataSourceName = source.sourceName;
       item.pages = page;
       trueList.add(item);
     }
     return trueList;
   }
 
-
-  Future<List<ImageModel>> getIndexListByTags
-      (String tags,int pages, int limit) async {
-    String url = YandeApi.post + '?tags=$tags&page=$pages&limit=$limit';
-
-    Response<List<dynamic>> res = await this.source.http.get(url);
-
-    List<ImageModel> list = convertMapToImageModel(res);
-    List<ImageModel> trueList = List();
-    for (ImageModel item in list) {
-      if (item.tags != null) {
-        item.tagTagModelList = convertTagStringToList(item.tags);
-
-      }
-      ImageModel dto =await this._daoDataSource.fetchImageById(item.id);
-      if(dto != null) {
-        item.setStatusByImage(dto);
-      }
-      item.dataSourceName = this.source.sourceName;
-      item.pages = pages;
-      trueList.add(item);
-    }
-    return trueList;
-  }
-  List<ImageModel> convertMapToImageModel(Response<List> res) {
-    List<ImageModel> list = res.data.map((item) =>
-        ImageModel.fromJson(Map<String, dynamic>.from(item))).toList();
-    return list;
+  List<ImageModel> convertMapToImageModel(Response<List<dynamic>> res) {
+    return res.data!
+        .map((item) =>
+            ImageModel.fromJson(Map<String, dynamic>.from(item as Map)))
+        .toList();
   }
 
-
-
-  List<TagModel> convertTagStringToList(String tags){
-    return  tags.split(" ")
-        .map((str) => TagModel(null, str, null, null, null)).toList();
+  List<TagModel> convertTagStringToList(String tags) {
+    return tags.split(' ').map(TagModel.fromTagString).toList();
   }
-
-
 }

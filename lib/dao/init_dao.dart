@@ -1,6 +1,6 @@
-import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 
+import 'package:sqflite/sqflite.dart';
 import 'package:yande/appliction.dart';
 import 'package:yande/dao/image_dao.dart';
 import 'package:yande/dao/tag_dao.dart';
@@ -8,33 +8,33 @@ import 'package:yande/model/image_model.dart';
 import 'package:yande/model/tag_model.dart';
 
 class MyDateBaseValue {
-  static const Tag = "tag";
-  static const Image = "image";
+  static const Tag = 'tag';
+  static const Image = 'image';
 }
 
 class ImageTableColumn {
-  static const id = "id";
-  static const tags = "tags";
-  static const author = "author";
-  static const fileUrl = "file_url";
-  static const source = "source";
-  static const fileSize = "file_size";
-  static const fileExt = "file_ext";
-  static const previewUrl = "preview_url";
-  static const previewWidth = "preview_width";
-  static const previewHeight = "preview_height";
-  static const rating = "rating";
-  static const sampleUrl = "sample_url";
-  static const jpegUrl = "jpeg_url";
-  static const jpegWidth = "jpeg_width";
-  static const jpegHeight = "jpeg_height";
+  static const id = 'id';
+  static const tags = 'tags';
+  static const author = 'author';
+  static const fileUrl = 'file_url';
+  static const source = 'source';
+  static const fileSize = 'file_size';
+  static const fileExt = 'file_ext';
+  static const previewUrl = 'preview_url';
+  static const previewWidth = 'preview_width';
+  static const previewHeight = 'preview_height';
+  static const rating = 'rating';
+  static const sampleUrl = 'sample_url';
+  static const jpegUrl = 'jpeg_url';
+  static const jpegWidth = 'jpeg_width';
+  static const jpegHeight = 'jpeg_height';
   static const height = 'height';
   static const width = 'width';
-  static const jpegFileSize = "jpeg_file_size";
-  static const collectStatus = "collect_status";
-  static const downloadStatus = "download_status";
-  static const downloadPath = "download_path";
-
+  static const jpegFileSize = 'jpeg_file_size';
+  static const collectStatus = 'collect_status';
+  static const downloadStatus = 'download_status';
+  static const downloadPath = 'download_path';
+  static const dataSourceName = 'dataSourceName';
 }
 
 class TagTableColumn {
@@ -45,75 +45,100 @@ class TagTableColumn {
   static const type = 'type';
   static const ambiguous = 'ambiguous';
   static const collectStatus = 'collect_status';
+  static const dataSourceName = 'dataSourceName';
 }
 
-class DaoDataSource implements AppDaoDataSource{
-  static get name => "dao";
+class DaoDataSource implements AppDaoDataSource {
+  static String get name => 'dao';
+
+  final DatabaseFactory? databaseFactory;
+  final String? databasePath;
+  Database? _database;
+
+  DaoDataSource({this.databaseFactory, this.databasePath});
 
   @override
-  get sourceName => DaoDataSource.name;
+  String get sourceName => name;
 
-  ImageDao _imageDao;
-  TagDao _tagDao;
-
-  DaoDataSource() {
-    this._imageDao = ImageDao(this);
-    this._tagDao = TagDao(this);
-  }
+  late final ImageDao _imageDao = ImageDao(this);
+  late final TagDao _tagDao = TagDao(this);
 
   @override
   Future<Database> getDatabase() async {
-    String databasesPath =await getDatabasesPath();
-    String path = databasesPath + '/yande.db';
-    return await openDatabase(path, version: 2, onCreate: onCreate);
+    if (_database != null && _database!.isOpen) {
+      return _database!;
+    }
+    final factory = this.databaseFactory ?? databaseFactory;
+    if (factory == null) {
+      throw StateError(
+          'No database factory available; call sqfliteFfiInit() in tests');
+    }
+    final path = databasePath ?? '${await factory.getDatabasesPath()}/yande.db';
+    final db = await factory.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: 3,
+        onCreate: onCreate,
+        onUpgrade: onUpgrade,
+      ),
+    );
+    _database = db;
+    return db;
   }
 
   FutureOr<void> onCreate(Database db, int version) async {
     await db.execute(
-        'CREATE TABLE ${MyDateBaseValue.Tag} ('
-            'id INTEGER,'
-            'name TEXT,'
-            'nick_name TEXT,'
-            'count INTEGER,'
-            'type INTERGER,'
-            'ambiguous BOOL,'
-            'dataSourceName String,'
-            'collect_status INTERGER'
-            ')'
+      'CREATE TABLE ${MyDateBaseValue.Tag} ('
+      'id INTEGER,'
+      'name TEXT,'
+      'nick_name TEXT,'
+      'count INTEGER,'
+      '"order" INTEGER,'
+      'type INTEGER,'
+      'ambiguous INTEGER,'
+      'dataSourceName TEXT,'
+      'collect_status INTEGER'
+      ')',
     );
     await db.execute(
-        'CREATE TABLE ${MyDateBaseValue.Image} ('
-            'id INTEGER primary KEY,'
-            'tags TEXT,'
-            'author TEXT,'
-            'file_url TEXT,'
-            'source TEXT,'
-            'file_size INTEGER,'
-            'file_ext TEXT,'
-            'preview_url TEXT,'
-            'preview_width INTEGER,'
-            'preview_height INTEGER,'
-            'rating TEXT,'
-            'width INTEGER,'
-            'height INTEGER,'
-            'sample_url TEXT,'
-            'jpeg_url TEXT,'
-            'jpeg_width INTEGER,'
-            'jpeg_height INTEGER,'
-            'jpeg_file_size INTEGER,'
-            'dataSourceName String,'
-            'collect_status INTEGER,'
-            'download_status String,'
-            'download_path INTEGER'
-            ')');
-
+      'CREATE TABLE ${MyDateBaseValue.Image} ('
+      'id INTEGER PRIMARY KEY,'
+      'tags TEXT,'
+      'author TEXT,'
+      'file_url TEXT,'
+      'source TEXT,'
+      'file_size INTEGER,'
+      'file_ext TEXT,'
+      'preview_url TEXT,'
+      'preview_width INTEGER,'
+      'preview_height INTEGER,'
+      'rating TEXT,'
+      'width INTEGER,'
+      'height INTEGER,'
+      'sample_url TEXT,'
+      'jpeg_url TEXT,'
+      'jpeg_width INTEGER,'
+      'jpeg_height INTEGER,'
+      'jpeg_file_size INTEGER,'
+      'dataSourceName TEXT,'
+      'collect_status INTEGER,'
+      'download_status INTEGER,'
+      'download_path TEXT'
+      ')',
+    );
   }
 
-
+  FutureOr<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // 旧版表结构有类型错误（download_path INTEGER）且无法 ALTER 改类型，
+    // 开发基线直接重建（会丢失本地收藏/下载记录）。
+    await db.execute('DROP TABLE IF EXISTS ${MyDateBaseValue.Tag}');
+    await db.execute('DROP TABLE IF EXISTS ${MyDateBaseValue.Image}');
+    await onCreate(db, newVersion);
+  }
 
   @override
-  Future<ImageModel> fetchImageById(int id) {
-    return _imageDao.getImageById('$id');
+  Future<ImageModel?> fetchImageById(int id) {
+    return _imageDao.getImageById(id);
   }
 
   @override
@@ -123,7 +148,7 @@ class DaoDataSource implements AppDaoDataSource{
 
   @override
   Future<List<ImageModel>> fetchImageByTag(String tag, int page, int limit) {
-    throw "数据库暂时不支持搜索 tag";
+    throw UnimplementedError('数据库暂时不支持搜索 tag');
   }
 
   @override
@@ -143,8 +168,7 @@ class DaoDataSource implements AppDaoDataSource{
 
   @override
   Future<List<TagModel>> getAllBlockTag() {
-    // TODO: implement getAllBlockTag
-    return null;
+    return _tagDao.getAllBlockTag();
   }
 
   @override
@@ -161,8 +185,4 @@ class DaoDataSource implements AppDaoDataSource{
   Future<void> saveTag(TagModel tag) {
     return _tagDao.saveTag(tag);
   }
-
-
-
-
 }
