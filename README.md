@@ -24,31 +24,20 @@
 `-- test
 ```
 
-## build 
-1. 运行 `flutter packages get`, 获取依赖.
-2. 运行 `flutter packages pub run build_runner build ` , 生成 model 的 json factory。如果想直接打包请忽略 2，3 两个步骤。
-3. 修改 `lib/model/` 中， `*.g.dart` 中 enum 对象的值. （由于枚举类型不好映射出值，直接修改，也可以通过一个 function 来处理枚举类型的 value， 解决这个问题，我认为修改为 index 的值是最简单的 ）
-    
-   example:
-   
-   ```dart
-   const _$ImageCollectStatusEnumMap = <ImageCollectStatus, dynamic>{
-        ImageCollectStatus.star: 'star',
-        ImageCollectStatus.unStar: 'unStar'
-      };
-   ```
-   
-   修改为 
-   
-   ```dart
-   const _$ImageCollectStatusEnumMap = <ImageCollectStatus, dynamic>{
-     ImageCollectStatus.star: 0,
-     ImageCollectStatus.unStar: 1
-   };
-   ```
-4. `flutter build apk`，在 `build/app/outputs/apk/release/` 下找到生成的 apk.
+## build
+
+1. 安装 Flutter stable（便携 zip 或 git clone 均可）。
+2. 运行 `flutter pub get` 获取依赖。
+3. 运行 `dart run build_runner build --delete-conflicting-outputs` 重新生成
+   `lib/model/*.g.dart`（枚举序列化由 `@JsonValue` 注解保证，无需手工改 map）。
+4. 运行 `flutter test` 与 `flutter analyze` 验证。
+5. 运行 `flutter build apk --debug`，APK 位于
+   `build/app/outputs/flutter-apk/app-debug.apk`。
+
+> 注意：release 签名已从仓库移除，打包 release 需自行配置本地 keystore（环境变量方式）。
 
 ## 第三方依赖
+
 
 *  [dio](https://pub.dartlang.org/packages/dio)
 *  [cached_network_image](https://pub.dartlang.org/packages/cached_network_image)
