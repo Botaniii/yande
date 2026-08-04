@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:yande/appliction.dart';
 import 'package:yande/dao/init_dao.dart';
 import 'package:yande/http/yande/YandeHttpDataSource.dart';
@@ -19,6 +20,7 @@ class YandeImageListApi {
   Future<ImageModel?> fetchImageById(String id) async {
     final url = '${YandeApi.post}?tags=id:$id&limit=1';
     final res = await source.http.get<List<dynamic>>(url);
+    debugPrint('yande http GET: ' + url);
     final list = convertMapToImageModel(res);
     return list.isEmpty ? null : list.first;
   }
@@ -26,6 +28,7 @@ class YandeImageListApi {
   Future<List<ImageModel>> fetchImageByPage(int page, int limit) async {
     final url = '${YandeApi.post}?page=$page&limit=$limit';
     final res = await source.http.get<List<dynamic>>(url);
+    debugPrint('yande http GET: ' + url);
     return _decorate(res, page);
   }
 
@@ -36,10 +39,11 @@ class YandeImageListApi {
   ) async {
     final url = '${YandeApi.post}?tags=$tags&page=$pages&limit=$limit';
     final res = await source.http.get<List<dynamic>>(url);
+    debugPrint('yande http GET: ' + url);
     return _decorate(res, pages);
   }
 
-  /// 合并本地收藏/下载状态，并解析 tags 字符串。
+  /// 鍚堝苟鏈湴鏀惰棌/涓嬭浇鐘舵€侊紝骞惰В鏋?tags 瀛楃涓层€?
   Future<List<ImageModel>> _decorate(
       Response<List<dynamic>> res, int page) async {
     final list = convertMapToImageModel(res);

@@ -29,7 +29,11 @@ class Application {
   String? filterRank;
   late final _AppDataSourcePool dataPool;
 
-  Application._() : _dio = Dio() {
+  Application._()
+      : _dio = Dio(BaseOptions(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 15),
+        )) {
     dataPool = _AppDataSourcePool();
     dataPool.registryDataSource(YandeImageHttpDataSource(_dio));
     dataPool.registryDataSource(DaoDataSource());

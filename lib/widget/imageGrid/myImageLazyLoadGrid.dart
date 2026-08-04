@@ -121,6 +121,7 @@ class _MyImageLazyLoadGridState extends State<MyImageLazyLoadGrid> {
     try {
       imageList = await _getImageList();
     } catch (e) {
+      debugPrint('reloadGallery error: ' + e.toString());
       if (loadingStatus == GridViewLoadingStatus.error) {
         isInitError = true;
       }
@@ -166,6 +167,7 @@ class _MyImageLazyLoadGridState extends State<MyImageLazyLoadGrid> {
       loadingStatus = GridViewLoadingStatus.success;
       return imageList;
     } catch (e) {
+      debugPrint('_getImageList error: ' + e.toString());
       loadingStatus = GridViewLoadingStatus.error;
       rethrow;
     }
