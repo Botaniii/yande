@@ -51,11 +51,11 @@ class TagTableColumn {
 class DaoDataSource implements AppDaoDataSource {
   static String get name => 'dao';
 
-  final DatabaseFactory? databaseFactory;
-  final String? databasePath;
+  final DatabaseFactory? injectedDatabaseFactory;
+  final String? injectedDatabasePath;
   Database? _database;
 
-  DaoDataSource({this.databaseFactory, this.databasePath});
+  DaoDataSource({this.injectedDatabaseFactory, this.injectedDatabasePath});
 
   @override
   String get sourceName => name;
@@ -68,12 +68,8 @@ class DaoDataSource implements AppDaoDataSource {
     if (_database != null && _database!.isOpen) {
       return _database!;
     }
-    final factory = this.databaseFactory ?? databaseFactory;
-    if (factory == null) {
-      throw StateError(
-          'No database factory available; call sqfliteFfiInit() in tests');
-    }
-    final path = databasePath ?? '${await factory.getDatabasesPath()}/yande.db';
+    final factory = injectedDatabaseFactory ?? databaseFactory;
+    final path = injectedDatabasePath ?? '${await factory.getDatabasesPath()}/yande.db';
     final db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
@@ -129,8 +125,8 @@ class DaoDataSource implements AppDaoDataSource {
   }
 
   FutureOr<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // 旧版表结构有类型错误（download_path INTEGER）且无法 ALTER 改类型，
-    // 开发基线直接重建（会丢失本地收藏/下载记录）。
+    // 鏃х増琛ㄧ粨鏋勬湁绫诲瀷閿欒锛坉ownload_path INTEGER锛変笖鏃犳硶 ALTER 鏀圭被鍨嬶紝
+    // 寮€鍙戝熀绾跨洿鎺ラ噸寤猴紙浼氫涪澶辨湰鍦版敹钘?涓嬭浇璁板綍锛夈€?
     await db.execute('DROP TABLE IF EXISTS ${MyDateBaseValue.Tag}');
     await db.execute('DROP TABLE IF EXISTS ${MyDateBaseValue.Image}');
     await onCreate(db, newVersion);
@@ -148,7 +144,7 @@ class DaoDataSource implements AppDaoDataSource {
 
   @override
   Future<List<ImageModel>> fetchImageByTag(String tag, int page, int limit) {
-    throw UnimplementedError('数据库暂时不支持搜索 tag');
+    throw UnimplementedError('鏁版嵁搴撴殏鏃朵笉鏀寔鎼滅储 tag');
   }
 
   @override

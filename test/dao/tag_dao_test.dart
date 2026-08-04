@@ -13,8 +13,8 @@ void main() {
 
   setUp(() {
     source = DaoDataSource(
-      databaseFactory: databaseFactoryFfi,
-      databasePath: inMemoryDatabasePath,
+      injectedDatabaseFactory: databaseFactoryFfi,
+      injectedDatabasePath: inMemoryDatabasePath,
     );
   });
 
