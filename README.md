@@ -34,7 +34,9 @@
 5. 运行 `flutter build apk --debug`，APK 位于
    `build/app/outputs/flutter-apk/app-debug.apk`。
 
-> 注意：release 签名已从仓库移除，打包 release 需自行配置本地 keystore（环境变量方式）。
+> release 签名：仓库不含任何签名凭据。打包 release 时设置环境变量
+> `YANDE_STORE_FILE`（keystore 路径）、`YANDE_STORE_PASSWORD`、`YANDE_KEY_ALIAS`、`YANDE_KEY_PASSWORD`
+> 即可使用独立签名；未设置时自动回退 debug 签名（仅限调试/CI 构建，不可上架）。
 
 ## 第三方依赖
 

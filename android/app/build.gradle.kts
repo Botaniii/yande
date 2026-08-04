@@ -15,21 +15,34 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "xyz.xiaopo.yande"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val storePath = System.getenv("YANDE_STORE_FILE")
+            if (!storePath.isNullOrEmpty()) {
+                storeFile = file(storePath)
+                storePassword = System.getenv("YANDE_STORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("YANDE_KEY_ALIAS") ?: "yande"
+                keyPassword = System.getenv("YANDE_KEY_PASSWORD") ?: ""
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // 环境变量未配置时回退 debug 签名，保证 CI 与日常构建可用；
+            // 发布正式版时设置 YANDE_STORE_FILE 等环境变量即可使用独立签名。
+            signingConfig = if (System.getenv("YANDE_STORE_FILE").isNullOrEmpty()) {
+                signingConfigs.getByName("debug")
+            } else {
+                signingConfigs.getByName("release")
+            }
         }
     }
 }
