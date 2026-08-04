@@ -49,14 +49,19 @@ jobs:
           YANDE_KEY_PASSWORD: ${{ secrets.YANDE_KEY_PASSWORD }}
         run: flutter build apk --release
 
+      - name: Rename release APK
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/yande-${{ github.ref_name }}.apk"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: yande-apk
-          path: build/app/outputs/flutter-apk/app-*.apk
+          path: build/app/outputs/flutter-apk/*.apk
 
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/yande-${{ github.ref_name }}.apk
