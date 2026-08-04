@@ -7,6 +7,6 @@ import xyz.xiaopo.yande.plugins.ScanImageFileBroadCastPlugin
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        ScanImageFileBroadCastPlugin.registerWith(flutterEngine)
+        ScanImageFileBroadCastPlugin.registerWith(flutterEngine, applicationContext)
     }
 }
