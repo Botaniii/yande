@@ -5,16 +5,17 @@ import 'package:yande/view/collectView/collectImageView.dart';
 import 'package:yande/view/search/resultView.dart';
 import 'package:yande/view/setting/settingView.dart';
 
-
-class LeftDrawer extends StatelessWidget{
+class LeftDrawer extends StatelessWidget {
+  const LeftDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
         children: <Widget>[
-          UserAccountsDrawerHeader(
-            accountName: const Text('yande'),
+          const UserAccountsDrawerHeader(
+            accountEmail: Text(''),
+            accountName: Text('yande'),
           ),
           MediaQuery.removePadding(
             context: context,
@@ -30,79 +31,81 @@ class LeftDrawer extends StatelessWidget{
                   ),
                   ListTile(
                     title: const Text('设置'),
-                    onTap: (){
+                    onTap: () {
                       Navigator.pop(context);
                       Navigator.pushNamed(context, SettingView.route);
                     },
-                  )
+                  ),
                 ],
               ),
-            )
-          )
+            ),
+          ),
         ],
       ),
     );
   }
-
 }
 
 class RightDrawer extends StatefulWidget {
+  const RightDrawer({super.key});
+
   @override
   State<RightDrawer> createState() => _RightDrawerState();
 }
 
 class _RightDrawerState extends State<RightDrawer> {
-  List<TagModel> shortcutList = List();
+  List<TagModel> shortcutList = <TagModel>[];
 
   @override
   void initState() {
     super.initState();
-    this.getShortcutList();
+    getShortcutList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Container(
-        margin: EdgeInsets.only(top: 15),
+        margin: const EdgeInsets.only(top: 15),
         child: Column(
           children: <Widget>[
             _buildShortcutDrawerHeader(),
             Expanded(
-                child: _buildShortcutList()
-            )
+              child: _buildShortcutList(),
+            ),
           ],
         ),
-      )
+      ),
     );
   }
 
   Widget _buildShortcutList() {
-    Widget shortcutListView = ListView(
-      children: this.shortcutList.map(
-          (tag) => ListTile(
-              title: Text(tag.name),
+    return ListView(
+      children: shortcutList
+          .map(
+            (tag) => ListTile(
+              title: Text(tag.name ?? ''),
               onTap: () {
-                this._goResultView(tag.name);
-              }
+                _goResultView(tag.name ?? '');
+              },
+            ),
           )
-      ).toList(),
+          .toList(),
     );
-    return shortcutListView;
   }
 
   void getShortcutList() {
-    this.shortcutList = TagStore.shortCutList;
+    shortcutList = TagStore.shortCutList;
   }
 
-  _buildShortcutDrawerHeader({GestureTapCallback onPressed}) {
+  _buildShortcutDrawerHeader({GestureTapCallback? onPressed}) {
     return Container(
-      color: Color(0xffeff0f1),
+      color: const Color(0xffeff0f1),
       child: ListTile(
-        title: const Text('快速搜索'),
-        trailing: MaterialButton(
-          child: Icon(Icons.settings),
-          onPressed: onPressed
+        title: const Text('快捷搜索'),
+        trailing: FilledButton(
+          onPressed: onPressed,
+          child: const Icon(Icons.settings),
         ),
       ),
     );
@@ -117,9 +120,6 @@ class _RightDrawerState extends State<RightDrawer> {
               return ResultView(
                 tags: word,
               );
-            }
-        )
-    );
+            }));
   }
-
 }

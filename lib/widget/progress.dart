@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ImageCardCircularProgressIndicator extends StatelessWidget {
+  const ImageCardCircularProgressIndicator({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -13,16 +15,14 @@ class ImageCardCircularProgressIndicator extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class FootProgress extends StatelessWidget {
-
-  const FootProgress();
+  const FootProgress({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 30,
       child: Center(
         child: SizedBox(
@@ -35,16 +35,14 @@ class FootProgress extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class CenterProgress extends StatelessWidget {
-
-  const CenterProgress();
+  const CenterProgress({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 40,
       height: 40,
       child: Center(
@@ -58,5 +56,4 @@ class CenterProgress extends StatelessWidget {
       ),
     );
   }
-
 }

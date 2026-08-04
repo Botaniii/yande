@@ -8,34 +8,32 @@ import 'package:yande/utils/utils.dart';
 import 'package:yande/widget/progress.dart';
 
 class DirectoryPickerView extends StatefulWidget {
-
   final String path;
-  DirectoryPickerView(this.path): assert(path != null);
+
+  DirectoryPickerView(this.path, {super.key}) : assert(path.isNotEmpty);
 
   @override
   State<StatefulWidget> createState() => _DirectoryPickerView();
-
 }
 
-class _DirectoryPickerView extends State<DirectoryPickerView>{
-
+class _DirectoryPickerView extends State<DirectoryPickerView> {
   bool isLoading = true;
-  List<MyDirectoryStat> dirList;
-  Directory currentDir;
-  String rootPath;
+  List<MyDirectoryStat> dirList = <MyDirectoryStat>[];
+  Directory? currentDir;
+  String rootPath = '';
 
   @override
   void initState() {
     super.initState();
-    this.getRootPath();
-    this.getDirList(widget.path);
+    getRootPath();
+    getDirList(widget.path);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: const BackButton(),
         title: const Text('选择文件夹'),
       ),
       body: _buildDirList(),
@@ -48,11 +46,11 @@ class _DirectoryPickerView extends State<DirectoryPickerView>{
       return Column(
         children: <Widget>[
           _buildDirPathHeader(),
-          Expanded(
-            child:  Center(
+          const Expanded(
+            child: Center(
               child: CenterProgress(),
             ),
-          )
+          ),
         ],
       );
     } else {
@@ -61,131 +59,119 @@ class _DirectoryPickerView extends State<DirectoryPickerView>{
           _buildDirPathHeader(),
           Expanded(
             child: ListView(
-              children: _buildDirListTile(this.dirList),
+              children: _buildDirListTile(dirList),
             ),
-          )
+          ),
         ],
       );
     }
   }
 
-  Future<void> getDirList(String path) async{
-
-    this.isLoading = true;
-    if (this.mounted) {
+  Future<void> getDirList(String path) async {
+    isLoading = true;
+    if (mounted) {
       setState(() {});
     }
 
     currentDir = Directory(path);
-    this.dirList =await FileUtils.getAllDirectoryChildren(
-      Directory(path)
-    );
+    dirList = await FileUtils.getAllDirectoryChildren(Directory(path));
 
-    this.isLoading = false;
-    if (this.mounted) {
+    isLoading = false;
+    if (mounted) {
       setState(() {});
     }
   }
 
   List<Widget> _buildDirListTile(List<MyDirectoryStat> dirList) {
-    List<Widget> listTiles = List();
-    if (this.currentDir.path != this.rootPath) {
+    final listTiles = <Widget>[];
+    if (currentDir != null && currentDir!.path != rootPath) {
       listTiles.add(ListTile(
-        leading: Icon(Icons.folder_open),
+        leading: const Icon(Icons.folder_open),
         title: const Text('...'),
         onTap: () {
-          this.getDirList(currentDir.parent.path);
+          getDirList(currentDir!.parent.path);
         },
       ));
     }
     listTiles.addAll(
-      this.dirList.map(
+      dirList.map(
         (d) => ListTile(
-          leading: Icon(
-              Icons.folder,
-              color: Colors.amberAccent,
+          leading: const Icon(
+            Icons.folder,
+            color: Colors.amberAccent,
           ),
           title: Text(basename(d.path)),
           onTap: () {
-            this.getDirList(d.path);
+            getDirList(d.path);
           },
-        )
-      )
+        ),
+      ),
     );
     return listTiles;
   }
 
-  Future<void> getRootPath() async{
-    this.rootPath =(await getExternalStorageDirectory()).path;
+  Future<void> getRootPath() async {
+    rootPath = (await getApplicationDocumentsDirectory()).path;
   }
 
   Widget _buildDirPathHeader() {
     return Container(
       height: 40,
       width: double.infinity,
-      padding: EdgeInsets.only(
-        left: 10,
-      ),
+      padding: const EdgeInsets.only(left: 10),
       alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: const Color(0xffeff0f1),
+      decoration: const BoxDecoration(
+        color: Color(0xffeff0f1),
         border: Border(
-          bottom: BorderSide(
-            color: const Color(0xffcccccc)
-          )
-        )
+          bottom: BorderSide(color: Color(0xffcccccc)),
+        ),
       ),
-      child: Text(this.currentDir.path),
+      child: Text(currentDir?.path ?? ''),
     );
   }
 
   _buildConfirmBottomButton(BuildContext context) {
-      return Container(
-        height: 60,
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: const Color(0xffcccccc)
-            )
-          )
+    return Container(
+      height: 60,
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Color(0xffcccccc)),
         ),
-        alignment: Alignment.bottomCenter,
-        width: double.infinity,
-        child: Row(
-          children: <Widget>[
-            NormalButton(
-                '选择',
-                onTap: () {
-                  Navigator.pop(context, this.currentDir.path);
-                },
-            ),
-            NormalButton(
-              '取消',
-              onTap: () {
-                Navigator.pop(context);
-              },
-            )
-          ],
-        ),
-      );
+      ),
+      alignment: Alignment.bottomCenter,
+      width: double.infinity,
+      child: Row(
+        children: <Widget>[
+          NormalButton(
+            '选择',
+            onTap: () {
+              Navigator.pop(context, currentDir?.path);
+            },
+          ),
+          NormalButton(
+            '取消',
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
-
 }
 
 class NormalButton extends StatelessWidget {
-
   final String text;
-  final GestureTapCallback onTap;
+  final GestureTapCallback? onTap;
 
-  NormalButton(this.text, {this.onTap});
+  const NormalButton(this.text, {super.key, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-
     return Expanded(
       child: Material(
         child: InkWell(
-          onTap: this.onTap,
+          onTap: onTap,
           child: Container(
             width: double.infinity,
             height: double.infinity,
@@ -196,5 +182,4 @@ class NormalButton extends StatelessWidget {
       ),
     );
   }
-
 }

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/service/imageServive.dart';
 import 'package:yande/widget/imageGrid/lazyloadView.dart';
-import 'dart:async';
-
 import 'package:yande/widget/progress.dart';
 
 typedef ImageCardBuilder = Widget Function(ImageModel image);
@@ -11,68 +9,67 @@ typedef ImageCardBuilder = Widget Function(ImageModel image);
 class MyImageLazyLoadGrid extends StatefulWidget {
   final int crossAxisCount;
   final Widget footer;
-  final String heroPrefix;
-  final ImageCardBuilder cardBuilder;
-  final String searchTag;
-
+  final String? heroPrefix;
+  final ImageCardBuilder? cardBuilder;
+  final String? searchTag;
   final int pages;
   final int limit;
+  final String? sourceName;
 
-  final String sourceName;
-
-  MyImageLazyLoadGrid({
+  const MyImageLazyLoadGrid({
+    super.key,
     this.crossAxisCount = 2,
     this.cardBuilder,
     this.heroPrefix,
     this.pages = 1,
     this.searchTag,
     this.limit = 20,
-    this.sourceName = null,
+    this.sourceName,
     this.footer = const FootProgress(),
   });
 
   @override
-  _MyImageLazyLoadGridState createState() => _MyImageLazyLoadGridState();
+  State<MyImageLazyLoadGrid> createState() => _MyImageLazyLoadGridState();
 }
 
 class _MyImageLazyLoadGridState extends State<MyImageLazyLoadGrid> {
-  ScrollController controller = ScrollController();
-  List<ImageModel> imageList = List();
+  final ScrollController controller = ScrollController();
+  List<ImageModel> imageList = <ImageModel>[];
   GridViewLoadingStatus loadingStatus = GridViewLoadingStatus.pending;
   bool isInitError = false;
-  String filterRank;
+  String? filterRank;
   bool noImageLoad = false;
-  int pages;
-  int limit;
+  late int pages;
+  late int limit;
 
   @override
   void initState() {
     super.initState();
-    this.pages = this.widget.pages;
-    this.limit = this.widget.limit;
-    this.controller.addListener(this.scrollListener);
-    this.reloadGallery();
+    pages = widget.pages;
+    limit = widget.limit;
+    controller.addListener(scrollListener);
+    reloadGallery();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget footer = FootProgress();
-    if (this.noImageLoad) {
+    Widget footer = const FootProgress();
+    if (noImageLoad) {
       footer = Center(
-        child: const Text("没有更多图片了"),
+        child: const Text('没有更多图片了'),
       );
     }
-    if (imageList.length > 0) {
+    if (imageList.isNotEmpty) {
       return RefreshIndicator(
         child: LazyLoadGridView(
-          controller: this.controller,
-          heroPrefix: this.widget.heroPrefix,
-          children: imageList.map(this.widget.cardBuilder).toList(),
+          controller: controller,
+          heroPrefix: widget.heroPrefix,
+          children: imageList.map(widget.cardBuilder!).toList(),
           footer: footer,
         ),
-        onRefresh: this.reloadGallery,
+        onRefresh: reloadGallery,
       );
-    } else if (this.isInitError == true) {
+    } else if (isInitError) {
       return buildErrorContent();
     } else {
       return Center(
@@ -86,49 +83,49 @@ class _MyImageLazyLoadGridState extends State<MyImageLazyLoadGrid> {
       child: Container(
         height: double.infinity,
         width: double.infinity,
-        child: Center(
-          child: const Text(
+        child: const Center(
+          child: Text(
             '加载失败了呢~\n点击重试',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: const Color(0xffcccccc)),
+            style: TextStyle(color: Color(0xffcccccc)),
           ),
         ),
       ),
       behavior: HitTestBehavior.translucent,
-      onTap: () => this.reloadGallery(),
+      onTap: () => reloadGallery(),
     );
   }
 
   void scrollListener() {
-    if (this.controller.position.extentAfter < 50 &&
-        this.loadingStatus != GridViewLoadingStatus.pending) {
-      this._loadPage(this.pages, this.limit);
+    if (controller.position.extentAfter < 50 &&
+        loadingStatus != GridViewLoadingStatus.pending) {
+      _loadPage(pages, limit);
     }
   }
 
   Future<void> _loadPage(int pages, int limit) async {
     try {
-      List<ImageModel> imageList = await _getImageList();
-      this._updateImageList(imageList);
+      final imageList = await _getImageList();
+      _updateImageList(imageList);
     } catch (e) {
-      print(e);
+      debugPrint('load page error: $e');
     }
   }
 
   Future<void> reloadGallery() async {
-    this.pages = 1;
-    this.isInitError = false;
-    if (this.mounted) {
+    pages = 1;
+    isInitError = false;
+    if (mounted) {
       setState(() {});
     }
     try {
-      this.imageList = await _getImageList();
+      imageList = await _getImageList();
     } catch (e) {
-      if (this.loadingStatus == GridViewLoadingStatus.error) {
-        this.isInitError = true;
+      if (loadingStatus == GridViewLoadingStatus.error) {
+        isInitError = true;
       }
     }
-    if (this.mounted) {
+    if (mounted) {
       setState(() {});
     }
   }
@@ -136,57 +133,56 @@ class _MyImageLazyLoadGridState extends State<MyImageLazyLoadGrid> {
   /// @Param pages 页码
   /// @Param limit 每页显示条数
   Future<List<ImageModel>> _getImageList() async {
-    this.loadingStatus = GridViewLoadingStatus.pending;
+    loadingStatus = GridViewLoadingStatus.pending;
 
     try {
-      List<ImageModel> imageList = [];
+      final imageList = <ImageModel>[];
       var loadedPages = 0;
       while (imageList.length < 10 && loadedPages < 5) {
         try {
-          if (this.widget.searchTag != null) {
+          if (widget.searchTag != null) {
             imageList.addAll(await ImageService.getImageByTag(
-                this.widget.searchTag, pages, limit, sourceName: this.widget.sourceName));
+                widget.searchTag!, pages, limit,
+                sourceName: widget.sourceName));
           } else {
             imageList.addAll(await ImageService.getIndexListByPage(
               pages,
               limit,
-              sourceName: this.widget.sourceName,
-            )
-            );
+              sourceName: widget.sourceName,
+            ));
           }
           pages++;
           loadedPages++;
-        } catch(e) {
+        } catch (e) {
           if (e is NoImageError) {
-            this.noImageLoad = true;
+            noImageLoad = true;
             break;
           } else {
-            throw e;
+            rethrow;
           }
         }
-
       }
 
-      this.loadingStatus = GridViewLoadingStatus.success;
+      loadingStatus = GridViewLoadingStatus.success;
       return imageList;
     } catch (e) {
-      this.loadingStatus = GridViewLoadingStatus.error;
-      throw e;
+      loadingStatus = GridViewLoadingStatus.error;
+      rethrow;
     }
   }
 
   /// @Param imageList 新的图片
   void _updateImageList(List<ImageModel> imageList) {
     this.imageList.addAll(imageList);
-    if (this.mounted) {
+    if (mounted) {
       setState(() {});
     }
   }
 
   @override
-  dispose() {
+  void dispose() {
+    controller.dispose();
     super.dispose();
-    this.controller.dispose();
   }
 }
 

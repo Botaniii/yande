@@ -9,35 +9,34 @@ import 'subview/dirPickerView.dart';
 class SettingView extends StatefulWidget {
   static const title = '设置';
   static const route = '/setting';
+
+  const SettingView({super.key});
+
   @override
   State<StatefulWidget> createState() => _SettingViewState();
-
 }
 
 class _SettingViewState extends State<SettingView> {
-
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool initSuccess = false;
-  List<SettingItem<String>> settingList;
+  List<SettingItem<String>>? settingList;
 
-  List<_DropButtonData> dropButtonDataList = [
-      _DropButtonData(name: '正常向', value: 's'),
-      _DropButtonData(name: '擦边', value: 'q'),
-      _DropButtonData(name: '限制', value: 'e')
+  final List<_DropButtonData> dropButtonDataList = [
+    const _DropButtonData(name: '正常', value: 's'),
+    const _DropButtonData(name: '擦边', value: 'q'),
+    const _DropButtonData(name: '限制', value: 'e'),
   ];
 
   @override
   void initState() {
     super.initState();
-    this.getAllSetting();
+    getAllSetting();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       appBar: AppBar(
-        leading: BackButton(),
+        leading: const BackButton(),
         title: const Text('设置'),
       ),
       body: _buildSettingList(),
@@ -45,23 +44,23 @@ class _SettingViewState extends State<SettingView> {
   }
 
   _buildSettingList() {
-    if (this.initSuccess) {
+    if (initSuccess) {
       return ListView(
-        children: this.settingList.map((v) => _buildSettingItem(v)).toList(),
+        children: (settingList ?? <SettingItem<String>>[])
+            .map((v) => _buildSettingItem(v))
+            .toList(),
       );
     } else {
-      return Container(
-        child: Center(
-          child:  CenterProgress(),
-        ),
+      return const Center(
+        child: CenterProgress(),
       );
     }
   }
 
-  Future<void> getAllSetting() async{
-    settingList =await SettingService.getAllSetting();
-    this.initSuccess = true;
-    if (this.mounted) {
+  Future<void> getAllSetting() async {
+    settingList = await SettingService.getAllSetting();
+    initSuccess = true;
+    if (mounted) {
       setState(() {});
     }
   }
@@ -70,32 +69,34 @@ class _SettingViewState extends State<SettingView> {
     if (v.name == SETTING_TYPE.IMAGE_DOWNLOAD_PATH) {
       return ListTile(
         title: Text(v.name),
-        subtitle: Text(v.value),
-        trailing: Icon(Icons.arrow_forward_ios),
-        onTap: () async{
-          String path =await Navigator.push(context, MaterialPageRoute(builder: (c) {
-            return DirectoryPickerView(v.value);
+        subtitle: Text('${v.value}'),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: () async {
+          final path = await Navigator.push(context,
+              MaterialPageRoute(builder: (c) {
+            return DirectoryPickerView('${v.value}');
           }));
           if (path != null) {
-            _handlePickedName(v, path);
+            _handlePickedName(v, path as String);
           }
         },
       );
     } else if (v.name == SETTING_TYPE.FILTER_RANK) {
       return ListTile(
         title: Text(v.name),
-        subtitle: Text(this.getRankNameByValue(v.value)),
+        subtitle: Text(getRankNameByValue('${v.value}')),
         trailing: DropdownButton<String>(
-          value: v.value,
-          onChanged: (String newValue) {
+          value: v.value as String,
+          onChanged: (String? newValue) {
+            if (newValue == null) return;
             v.value = newValue;
-            Application.getInstance().setFilterRank(v);
-            this._showMessageBySnackbar("过滤等级更新成功，刷新之后生效");
-            if (this.mounted) {
+            Application.getInstance().setFilterRank(v as SettingItem<String>);
+            _showMessageBySnackbar('过滤等级更新成功，刷新之后生效');
+            if (mounted) {
               setState(() {});
             }
           },
-          items: this.dropButtonDataList.map((_DropButtonData data) {
+          items: dropButtonDataList.map((_DropButtonData data) {
             return DropdownMenuItem<String>(
               value: data.value,
               child: Text(data.name),
@@ -109,36 +110,35 @@ class _SettingViewState extends State<SettingView> {
   }
 
   String getRankNameByValue(String val) {
-    for(_DropButtonData data in this.dropButtonDataList) {
+    for (final data in dropButtonDataList) {
       if (data.value == val) {
         return data.name;
       }
     }
-    throw Error();
+    return val;
   }
 
-  FutureOr _handlePickedName(SettingItem item, String path) async{
+  FutureOr _handlePickedName(SettingItem item, String path) async {
     item.value = path;
-    await SettingService.saveSetting(item);
-    if (this.mounted) {
+    await SettingService.saveSetting(item as SettingItem<String>);
+    if (mounted) {
       setState(() {});
     }
   }
 
   _showMessageBySnackbar(String text) {
-    _scaffoldKey.currentState.showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(text),
-          duration: Duration(seconds: 1),
+        content: Text(text),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
 }
 
-class _DropButtonData{
-  String name;
-  String value;
+class _DropButtonData {
+  final String name;
+  final String value;
 
-  _DropButtonData({this.name, this.value});
+  const _DropButtonData({required this.name, required this.value});
 }
-

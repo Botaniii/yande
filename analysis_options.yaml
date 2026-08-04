@@ -2,6 +2,23 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    # 杩佺Щ鏈熷叧闂殑绾鏍艰鍒欙紙姝ｇ‘鎬х浉鍏?lint 淇濇寔榛樿寮€鍚級
     prefer_const_constructors: false
     prefer_const_literals_to_create_immutables: false
+    prefer_const_constructors_in_immutables: false
     use_key_in_widget_constructors: false
+    file_names: false
+    constant_identifier_names: false
+    unnecessary_this: false
+    unnecessary_const: false
+    unnecessary_library_name: false
+    sized_box_for_whitespace: false
+    sort_child_properties_last: false
+    prefer_interpolation_to_compose_strings: false
+    prefer_is_empty: false
+    prefer_is_not_empty: false
+    avoid_function_literals_in_foreach_calls: false
+    prefer_for_elements_to_map_fromiterable: false
+    library_private_types_in_public_api: false
+    use_rethrow_when_possible: false
+    avoid_unnecessary_containers: false

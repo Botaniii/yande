@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 
 class TagDialog extends StatelessWidget {
+  const TagDialog({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
       children: <Widget>[
         ListTile(
-          title: Text('加入快捷搜索'),
+          title: const Text('加入快捷搜索'),
           onTap: () {
-            print('加入');
+            Navigator.pop(context);
           },
         ),
         ListTile(
-          title: Text('过滤'),
+          title: const Text('过滤'),
           onTap: () {
-            print('过滤');
+            Navigator.pop(context);
           },
-        )
+        ),
       ],
     );
   }
-
 }

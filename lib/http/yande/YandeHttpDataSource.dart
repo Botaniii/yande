@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:yande/appliction.dart';
-import 'package:yande/dao/init_dao.dart';
 import 'package:yande/http/yande/constant/api.dart';
 import 'package:yande/http/yande/imageListApi.dart';
 import 'package:yande/http/yande/tagApi.dart';

@@ -3,44 +3,40 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:yande/service/updateService.dart';
 
 class UpdateDialog extends StatelessWidget {
+  final String? version;
+  final String? text;
+  final String? url;
 
-  final String version;
-  final String text;
-  final String url;
-
-  UpdateDialog({
-    this.version,
-    this.text,
-    this.url,
-  });
+  const UpdateDialog({super.key, this.version, this.text, this.url});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('新版本已经发布'),
-      content: Text(this.text),
+      content: Text(text ?? ''),
       actions: <Widget>[
-        FlatButton(
-            child: const Text('忽略此版本'),
-            onPressed: () {
-              UpdateService.ignoreUpdateVersion(version);
-              Navigator.pop(context);
+        TextButton(
+          onPressed: () {
+            if (version != null) {
+              UpdateService.ignoreUpdateVersion(version!);
             }
+            Navigator.pop(context);
+          },
+          child: const Text('忽略此版本'),
         ),
-        FlatButton(
-            child: const Text('暂时不'),
-            onPressed: () {
-              Navigator.pop(context);
-            }
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('暂时不'),
         ),
-        FlatButton(
-            child: const Text('更新'),
-            onPressed: () async{
-              if (await canLaunch(this.url)) {
-                await launch(url);
-              }
+        TextButton(
+          onPressed: () async {
+            final uri = Uri.tryParse(url ?? '');
+            if (uri != null && await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
             }
-        )
+          },
+          child: const Text('更新'),
+        ),
       ],
     );
   }

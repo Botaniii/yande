@@ -1,49 +1,36 @@
 import 'package:flutter/material.dart';
 
-
-
 class TagChip extends StatelessWidget {
+  final Widget? label;
+  final GestureTapCallback? onTap;
+  final GestureLongPressCallback? onLongPress;
+  final Color? backgroundColor;
 
-  final Widget label;
-  final GestureTapCallback onTap;
-  final GestureLongPressCallback onLongPress;
-  final Color backgroundColor;
-  TagChip({
-    @required this.label,
+  const TagChip({
+    super.key,
+    required this.label,
     this.onTap,
     this.onLongPress,
-    this.backgroundColor
-  }):assert(label != null);
+    this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-
-      margin: EdgeInsets.only(
-        left: 10,
-        right: 10,
-        top: 5,
-        bottom: 5,
-      ),
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
       child: Material(
-        color: this.backgroundColor,
-        shape:  StadiumBorder(),
+        color: backgroundColor,
+        shape: const StadiumBorder(),
         child: InkWell(
-          customBorder: StadiumBorder(),
+          customBorder: const StadiumBorder(),
           child: Container(
-            padding: EdgeInsets.only(
-              left: 10,
-              right: 10,
-              top: 5,
-              bottom: 5,
-            ),
-            child: this.label,
+            padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+            child: label,
           ),
-          onTap: this.onTap,
-          onLongPress: this.onLongPress,
+          onTap: onTap,
+          onLongPress: onLongPress,
         ),
       ),
     );
   }
-
 }

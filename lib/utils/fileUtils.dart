@@ -1,42 +1,27 @@
 import 'dart:io';
-import 'dart:async';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
 class FileUtils {
-
   static Future<Directory> getDirAndCreate(String path) async {
-    Directory dir = Directory(path);
-    bool isDirExist = await dir.exists();
-    if (!isDirExist) {
-      await dir.create();
+    final dir = Directory(path);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
     }
     return dir;
   }
 
-
-  static Future<Directory> getExternalDir() async {
-    String myPath = '/Android/data/xyz.xiaopo.yande';
-    Directory dir = await getExternalStorageDirectory();
-    return await getDirAndCreate('${dir.path}$myPath');
-  }
-  static Future<Directory> getExternalDatabaseDir() async {
-    Directory dir = await getExternalDir();
-    return await getDirAndCreate('${dir.path}/databases');
-  }
-
-  static Future<List<MyDirectoryStat>> getAllDirectoryChildren(Directory dir) async{
-    List<MyDirectoryStat> list = List();
-    List dirChildren =await dir.list().toList();
-    for (FileSystemEntity entity in dirChildren) {
-      FileStat stat =await entity.stat();
+  static Future<List<MyDirectoryStat>> getAllDirectoryChildren(
+      Directory dir) async {
+    final list = <MyDirectoryStat>[];
+    final dirChildren = await dir.list().toList();
+    for (final entity in dirChildren) {
+      final stat = await entity.stat();
       if (stat.type == FileSystemEntityType.directory) {
         list.add(MyDirectoryStat(
-            directory: Directory(entity.path),
-            name: basename(entity.path),
-            path: (entity.path),
-          )
-        );
+          directory: Directory(entity.path),
+          name: basename(entity.path),
+          path: entity.path,
+        ));
       }
     }
 
@@ -49,13 +34,13 @@ class FileUtils {
 }
 
 class MyDirectoryStat {
-  Directory directory;
-  String name;
-  String path;
+  final Directory directory;
+  final String name;
+  final String path;
 
   MyDirectoryStat({
-    this.directory,
-    this.name,
-    this.path
-  }):assert(directory != null),assert(name != null),assert(path != null);
+    required this.directory,
+    required this.name,
+    required this.path,
+  });
 }
