@@ -27,6 +27,7 @@ class UpdateService {
   }
   static Future<void> getVersion({
     ShouldUpdateCallback? shouldUpdate,
+    void Function()? onUpToDate,
   }) async {
     final dio = Dio();
     final res = await dio.get<dynamic>(GithubApi.latestApi);
@@ -39,6 +40,8 @@ class UpdateService {
     if (githubReleaseModel.tagName != item.value &&
         _isNewerVersion(githubReleaseModel.tagName ?? '', packageInfo.version)) {
       shouldUpdate?.call(githubReleaseModel);
+    } else {
+      onUpToDate?.call();
     }
   }
 

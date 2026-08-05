@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yande/appliction.dart';
 import 'package:yande/service/settingService.dart';
+import 'package:yande/service/updateService.dart';
+import 'package:yande/widget/dialog.dart';
 import 'package:yande/widget/progress.dart';
 import 'dart:async';
 
@@ -46,9 +48,11 @@ class _SettingViewState extends State<SettingView> {
   _buildSettingList() {
     if (initSuccess) {
       return ListView(
-        children: (settingList ?? <SettingItem<String>>[])
-            .map((v) => _buildSettingItem(v))
-            .toList(),
+        children: <Widget>[
+          ...(settingList ?? <SettingItem<String>>[])
+              .map((v) => _buildSettingItem(v)),
+          _buildCheckUpdateItem(),
+        ],
       );
     } else {
       return const Center(
@@ -106,6 +110,49 @@ class _SettingViewState extends State<SettingView> {
       );
     } else {
       return Container();
+    }
+  }
+
+  Widget _buildCheckUpdateItem() {
+    return ListTile(
+      title: const Text('????'),
+      subtitle: const Text('?? GitHub ???????'),
+      trailing: const Icon(Icons.system_update_alt),
+      onTap: _checkUpdate,
+    );
+  }
+
+  void _checkUpdate() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('???????'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    try {
+      await UpdateService.getVersion(
+        shouldUpdate: (githubRelease) {
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (context) => UpdateDialog(
+                version: githubRelease.tagName,
+                text: githubRelease.body,
+                url: githubRelease.htmlUrl,
+              ),
+            );
+          }
+        },
+        onUpToDate: () {
+          if (mounted) {
+            _showMessageBySnackbar('??????');
+          }
+        },
+      );
+    } catch (_) {
+      if (mounted) {
+        _showMessageBySnackbar('????????????');
+      }
     }
   }
 

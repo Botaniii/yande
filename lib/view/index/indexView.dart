@@ -3,11 +3,9 @@ import 'package:yande/utils/storageAccess.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/service/downloadService.dart';
 import 'package:yande/service/imageServive.dart';
-import 'package:yande/service/updateService.dart';
 import 'package:yande/view/imageStatus/imageStatusView.dart';
 import 'package:yande/view/index/components/drawer.dart';
 import 'package:yande/view/search/searchView.dart';
-import 'package:yande/widget/dialog.dart';
 import 'package:yande/widget/imageGrid/imageCard.dart';
 import 'package:yande/widget/imageGrid/myImageLazyLoadGrid.dart';
 
@@ -25,7 +23,6 @@ class _IndexView extends State<IndexView> {
   @override
   void initState() {
     super.initState();
-    checkUpdate();
   }
 
   @override
@@ -78,21 +75,6 @@ class _IndexView extends State<IndexView> {
     );
   }
 
-  void checkUpdate() {
-    UpdateService.getVersion(
-      shouldUpdate: (githubRelease) {
-        showDialog(
-            context: context,
-            builder: (context) => UpdateDialog(
-                  version: githubRelease.tagName,
-                  text: githubRelease.body,
-                  url: githubRelease.htmlUrl,
-                ));
-      },
-    ).catchError((_) {
-      // 更新检查失败时静默。
-    });
-  }
 
   Future<void> collectAction(ImageModel image) async {
     image = await ImageService.collectImage(image);
