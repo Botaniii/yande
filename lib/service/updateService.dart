@@ -49,15 +49,47 @@ class UpdateService {
   }
 
   /// ?? release ? APK ??????????
+  static String? _abiSuffix(String abi) {
+    switch (abi) {
+      case 'arm64-v8a':
+        return 'arm64';
+      case 'armeabi-v7a':
+        return 'armv7';
+      case 'x86_64':
+        return 'x86_64';
+      case 'x86':
+        return 'x86';
+      default:
+        return null;
+    }
+  }
+
   static Future<void> downloadAndInstall(
     GithubReleaseModel release, {
     ProgressCallback? onProcess,
   }) async {
-    GithubAssets? apkAsset;
-    for (final asset in release.assets ?? <GithubAssets>[]) {
-      if ((asset.name ?? '').endsWith('.apk')) {
-        apkAsset = asset;
-        break;
+    final tag = release.tagName ?? '';
+    final abi = await ApkInstaller.primaryAbi();
+    final suffix = _abiSuffix(abi);
+    final assets = release.assets ?? <GithubAssets>[];
+
+    GithubAssets? pick(String s) {
+      for (final asset in assets) {
+        if ((asset.name ?? '') == 'yande-$tag-$s.apk') {
+          return asset;
+        }
+      }
+      return null;
+    }
+
+    var apkAsset = suffix != null ? pick(suffix) : null;
+    apkAsset ??= pick('universal');
+    if (apkAsset == null) {
+      for (final asset in assets) {
+        if ((asset.name ?? '').endsWith('.apk')) {
+          apkAsset = asset;
+          break;
+        }
       }
     }
     final apkUrl = apkAsset?.browserDownloadUrl;

@@ -17,6 +17,7 @@ class ApkInstallPlugin private constructor(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
+            "primaryAbi" -> result.success(primaryAbi())
             "canRequestInstall" -> result.success(canRequestInstall())
             "openInstallSettings" -> {
                 openInstallSettings()
@@ -37,6 +38,10 @@ class ApkInstallPlugin private constructor(
             }
             else -> result.notImplemented()
         }
+    }
+
+    private fun primaryAbi(): String {
+        return Build.SUPPORTED_ABIS.firstOrNull() ?: ""
     }
 
     private fun canRequestInstall(): Boolean {

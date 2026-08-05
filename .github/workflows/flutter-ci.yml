@@ -40,7 +40,34 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         run: flutter build apk --debug
 
-      - name: Build APK (release signed)
+      # ---- tag ??:? CPU ??????? ----
+      - name: Build APK (release armv7)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          YANDE_STORE_FILE: ${{ runner.temp }}/yande-release.jks
+          YANDE_STORE_PASSWORD: ${{ secrets.YANDE_STORE_PASSWORD }}
+          YANDE_KEY_ALIAS: ${{ secrets.YANDE_KEY_ALIAS }}
+          YANDE_KEY_PASSWORD: ${{ secrets.YANDE_KEY_PASSWORD }}
+        run: flutter build apk --release --target-platform android-arm
+
+      - name: Rename armv7 APK
+        if: startsWith(github.ref, 'refs/tags/')
+        run: mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/yande-${{ github.ref_name }}-armv7.apk"
+
+      - name: Build APK (release arm64)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          YANDE_STORE_FILE: ${{ runner.temp }}/yande-release.jks
+          YANDE_STORE_PASSWORD: ${{ secrets.YANDE_STORE_PASSWORD }}
+          YANDE_KEY_ALIAS: ${{ secrets.YANDE_KEY_ALIAS }}
+          YANDE_KEY_PASSWORD: ${{ secrets.YANDE_KEY_PASSWORD }}
+        run: flutter build apk --release --target-platform android-arm64
+
+      - name: Rename arm64 APK
+        if: startsWith(github.ref, 'refs/tags/')
+        run: mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/yande-${{ github.ref_name }}-arm64.apk"
+
+      - name: Build APK (release universal)
         if: startsWith(github.ref, 'refs/tags/')
         env:
           YANDE_STORE_FILE: ${{ runner.temp }}/yande-release.jks
@@ -49,10 +76,9 @@ jobs:
           YANDE_KEY_PASSWORD: ${{ secrets.YANDE_KEY_PASSWORD }}
         run: flutter build apk --release --target-platform android-arm64,android-arm,android-x64
 
-      - name: Rename release APK
+      - name: Rename universal APK
         if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/yande-${{ github.ref_name }}.apk"
+        run: mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/yande-${{ github.ref_name }}-universal.apk"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -78,5 +104,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/app/outputs/flutter-apk/yande-${{ github.ref_name }}.apk
+          files: |
+            build/app/outputs/flutter-apk/yande-${{ github.ref_name }}-armv7.apk
+            build/app/outputs/flutter-apk/yande-${{ github.ref_name }}-arm64.apk
+            build/app/outputs/flutter-apk/yande-${{ github.ref_name }}-universal.apk
           body_path: release_notes.md

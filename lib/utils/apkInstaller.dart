@@ -4,6 +4,16 @@ import 'package:flutter/services.dart';
 class ApkInstaller {
   static const MethodChannel _channel = MethodChannel('yande_apk_install');
 
+  /// Current device primary ABI (e.g. arm64-v8a / armeabi-v7a / x86_64).
+  static Future<String> primaryAbi() async {
+    try {
+      final result = await _channel.invokeMethod<String>('primaryAbi');
+      return result ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   /// 是否已允许“安装未知应用”。
   static Future<bool> canRequestInstall() async {
     try {
