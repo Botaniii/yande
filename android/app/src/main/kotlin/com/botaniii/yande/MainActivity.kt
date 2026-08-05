@@ -1,10 +1,10 @@
-package xyz.xiaopo.yande
+package com.botaniii.yande
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import xyz.xiaopo.yande.plugins.ScanImageFileBroadCastPlugin
-import xyz.xiaopo.yande.plugins.StorageAccessPlugin
-import xyz.xiaopo.yande.plugins.ApkInstallPlugin
+import com.botaniii.yande.plugins.ScanImageFileBroadCastPlugin
+import com.botaniii.yande.plugins.StorageAccessPlugin
+import com.botaniii.yande.plugins.ApkInstallPlugin
 
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

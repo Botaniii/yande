@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "xyz.xiaopo.yande"
+    namespace = "com.botaniii.yande"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "xyz.xiaopo.yande"
+        applicationId = "com.botaniii.yande"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

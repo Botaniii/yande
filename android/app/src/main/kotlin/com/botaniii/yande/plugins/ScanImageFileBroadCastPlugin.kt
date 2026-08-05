@@ -1,4 +1,4 @@
-package xyz.xiaopo.yande.plugins
+package com.botaniii.yande.plugins
 
 import android.content.Context
 import android.media.MediaScannerConnection
