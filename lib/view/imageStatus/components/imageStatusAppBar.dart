@@ -138,38 +138,15 @@ class ImageActionButtonFiled extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(color: Colors.white),
-      alignment: Alignment.center,
-      child: Container(
-        decoration: BoxDecoration(
-            color: const Color(0xffffffff),
-            border: Border.all(color: const Color(0xffeaeaea)),
-            borderRadius: BorderRadius.all(Radius.circular(5)),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                offset: Offset(0.0, 0.5),
-                blurRadius: 5.0,
-                color: Color(0xffcccccc),
-              ),
-              BoxShadow(
-                offset: Offset(0.0, 0.5),
-                spreadRadius: 0.0,
-                color: Color(0xffcccccc),
-              ),
-              BoxShadow(
-                offset: Offset(0.0, 0.5),
-                spreadRadius: 0.0,
-                color: Color(0xffcccccc),
-              ),
-            ]),
-        margin: const EdgeInsets.only(top: 10, bottom: 10),
-        height: 50,
-        width: 300,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: children,
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Row(
+        children: <Widget>[
+          for (var i = 0; i < children.length; i++) ...<Widget>[
+            if (i > 0) const SizedBox(width: 12),
+            Expanded(child: children[i]),
+          ],
+        ],
       ),
     );
   }

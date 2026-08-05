@@ -104,19 +104,15 @@ class _ImageStatusView extends State<ImageStatusView> {
   }
 
   Widget _buildSearchChip(TagModel tag) {
-    return Container(
-      margin: const EdgeInsets.only(left: 5, right: 5),
-      child: TagChip(
-        backgroundColor: const Color(0x44eeeeee),
-        label: Text(tag.name ?? ''),
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ResultView(tags: tag.name ?? ''))),
-        onLongPress: () {
-          // 长按 tag 预留。
-        },
-      ),
+    return TagChip(
+      label: Text(tag.name ?? ''),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ResultView(tags: tag.name ?? ''))),
+      onLongPress: () {
+        // 长按 tag 预留。
+      },
     );
   }
 
@@ -131,16 +127,25 @@ class _ImageStatusView extends State<ImageStatusView> {
             }));
   }
 
-  Widget _buildLargeButton(String name, {VoidCallback? onPressed}) {
-    return Expanded(
-      child: FilledButton(
+  Widget _buildLargeButton(
+    String name, {
+    VoidCallback? onPressed,
+    IconData icon = Icons.visibility_outlined,
+    Color? backgroundColor,
+  }) {
+    return SizedBox(
+      height: 46,
+      child: FilledButton.icon(
         onPressed: onPressed,
-        child: SizedBox(
-          height: 50,
-          child: Center(
-            child: Text(
-              name,
-            ),
+        icon: Icon(icon, size: 20),
+        label: Text(
+          name,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        style: FilledButton.styleFrom(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
@@ -163,12 +168,20 @@ class _ImageStatusView extends State<ImageStatusView> {
 
   Widget _buildDownloadButton(ImageModel image, {VoidCallback? onPressed}) {
     if (image.downloadStatus == ImageDownloadStatus.pending) {
-      return _buildLargeButton('正在下载');
+      return _buildLargeButton(
+        '正在下载',
+        icon: Icons.hourglass_empty,
+      );
     } else if (image.downloadStatus == ImageDownloadStatus.success) {
-      return _buildLargeButton('已经下载');
+      return _buildLargeButton(
+        '已经下载',
+        icon: Icons.check_circle,
+        backgroundColor: const Color(0xFF2E9E6B),
+      );
     } else {
       return _buildLargeButton(
         '下载',
+        icon: Icons.download_outlined,
         onPressed: () => downloadAction(image),
       );
     }
@@ -194,22 +207,11 @@ class TagChipFiled extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 40, right: 40),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: Color(0xffeaeaea),
-            width: 1,
-          ),
-          bottom: BorderSide(
-            color: Color(0xffeaeaea),
-            width: 1,
-          ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
         children: children,
       ),
     );
