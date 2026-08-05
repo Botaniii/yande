@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:yande/widget/retryableCachedImage.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:yande/model/image_model.dart';
@@ -26,8 +26,14 @@ class _ImageGalleryViewState extends State<ImageGalleryView> {
       },
       child: Hero(
         tag: '${widget.heroPrefix}${widget.image.id}',
-        child: PhotoView(
-          imageProvider: CachedNetworkImageProvider(widget.image.sampleUrl ?? ''),
+        child: RetryableCachedImage(
+          imageUrl: widget.image.sampleUrl ?? '',
+          fit: BoxFit.contain,
+          placeholder: const Center(child: CircularProgressIndicator()),
+          builder: (context, file) => PhotoView(
+            imageProvider: FileImage(file),
+            backgroundDecoration: const BoxDecoration(color: Colors.black),
+          ),
         ),
       ),
     );

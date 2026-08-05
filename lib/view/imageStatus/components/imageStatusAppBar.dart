@@ -1,9 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:yande/widget/retryableCachedImage.dart';
 import 'package:flutter/material.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/service/cacheService.dart';
 import 'package:yande/service/shareService.dart';
-import 'package:yande/widget/progress.dart';
 import 'icons.dart';
 
 class ImageStatusSliverAppBar extends StatefulWidget {
@@ -79,9 +78,7 @@ class _ImageStatusSliverAppBarState extends State<ImageStatusSliverAppBar> {
           Container(
             height: double.infinity,
             width: double.infinity,
-            child: CachedNetworkImage(
-              placeholder: (_, __) =>
-                  const ImageCardCircularProgressIndicator(),
+            child: RetryableCachedImage(
               imageUrl: widget.image.previewUrl ?? '',
               fit: BoxFit.cover,
             ),
@@ -110,8 +107,7 @@ class _ImageStatusSliverAppBarState extends State<ImageStatusSliverAppBar> {
         ],
       );
     } else {
-      return CachedNetworkImage(
-        placeholder: (_, __) => const ImageCardCircularProgressIndicator(),
+      return RetryableCachedImage(
         imageUrl: widget.image.sampleUrl ?? '',
         fit: BoxFit.cover,
       );

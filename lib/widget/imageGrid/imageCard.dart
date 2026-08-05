@@ -1,7 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:yande/widget/retryableCachedImage.dart';
 import 'package:flutter/material.dart';
 import 'package:yande/model/image_model.dart';
-import 'package:yande/widget/progress.dart';
 
 typedef ImageTapCallBack = void Function(ImageModel);
 
@@ -96,10 +95,9 @@ class MainImageCard extends StatelessWidget {
             tag: '$heroPrefix${imageModel.id}',
             child: imageBuilder != null
                 ? imageBuilder!(imageModel)
-                : CachedNetworkImage(
-                    placeholder: (_, __) =>
-                        const ImageCardCircularProgressIndicator(),
+                : RetryableCachedImage(
                     imageUrl: imageModel.previewUrl ?? '',
+                    fit: BoxFit.fill,
                   ),
           ),
         ),
@@ -206,10 +204,9 @@ class ImageGalleryCard extends StatelessWidget {
               onTap: () => imageTap?.call(image),
               child: Hero(
                 tag: '$heroPrefix${image.id}',
-                child: CachedNetworkImage(
-                  placeholder: (_, __) =>
-                      const ImageCardCircularProgressIndicator(),
+                child: RetryableCachedImage(
                   imageUrl: image.previewUrl ?? '',
+                  fit: BoxFit.fill,
                 ),
               ),
             ),
