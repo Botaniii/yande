@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:yande/dao/init_dao.dart';
+import 'package:yande/http/dohResolver.dart';
 import 'package:yande/http/yande/YandeHttpDataSource.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/model/tag_model.dart';
@@ -33,7 +37,14 @@ class Application {
       : _dio = Dio(BaseOptions(
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 15),
-        )) {
+        ))
+        ..httpClientAdapter = IOHttpClientAdapter(
+          createHttpClient: () {
+            final client = HttpClient()
+              ..connectionFactory = DohResolver.connectionFactory;
+            return client;
+          },
+        ) {
     dataPool = _AppDataSourcePool();
     dataPool.registryDataSource(YandeImageHttpDataSource(_dio));
     dataPool.registryDataSource(DaoDataSource());
