@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,12 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
     ),
   );
 
+  /// ???????????????????????????????
+  /// ????????DNS ??/??????????
+  static const int _maxConcurrent = 5;
+  static int _activeDownloads = 0;
+  static final Queue<Completer<void>> _waiters = Queue<Completer<void>>();
+
   Uint8List? _bytes;
   bool _failed = false;
   int _requestSeq = 0;
@@ -73,6 +80,7 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
       }
       return;
     }
+    await _acquireSlot();
     final seq = ++_requestSeq;
     if (mounted) {
       setState(() {
@@ -104,6 +112,26 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
       setState(() {
         _failed = true;
       });
+    } finally {
+      _releaseSlot();
+    }
+  }
+
+  Future<void> _acquireSlot() async {
+    if (_activeDownloads < _maxConcurrent) {
+      _activeDownloads++;
+      return;
+    }
+    final completer = Completer<void>();
+    _waiters.add(completer);
+    await completer.future;
+  }
+
+  void _releaseSlot() {
+    if (_waiters.isNotEmpty) {
+      _waiters.removeFirst().complete();
+    } else {
+      _activeDownloads--;
     }
   }
 

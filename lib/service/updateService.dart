@@ -40,12 +40,13 @@ class UpdateService {
     final packageInfo = await PackageInfo.fromPlatform();
     final item = await SettingService.getSetting(UpdateValue.ignoreVersion);
 
-    if (githubReleaseModel.tagName != item.value &&
-        _isNewerVersion(githubReleaseModel.tagName ?? '', packageInfo.version)) {
-      shouldUpdate?.call(githubReleaseModel);
-    } else {
+    final hasUpdate = _isNewerVersion(githubReleaseModel.tagName ?? '', packageInfo.version);
+    if (!hasUpdate) {
       onUpToDate?.call();
+    } else if (githubReleaseModel.tagName != item.value) {
+      shouldUpdate?.call(githubReleaseModel);
     }
+    // 已忽略该版本时静默：不弹窗也不提示已是最新。
   }
 
   /// ?? release ? APK ??????????

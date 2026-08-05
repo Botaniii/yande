@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:yande/model/tag_model.dart';
 import 'package:yande/store/store.dart';
 import 'package:yande/view/collectView/collectImageView.dart';
-import 'package:yande/view/download/downloadManageView.dart';
 import 'package:yande/view/search/resultView.dart';
 import 'package:yande/view/setting/settingView.dart';
 
@@ -28,13 +27,6 @@ class LeftDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.pushNamed(context, CollectImageView.route);
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('下载管理'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, DownloadManageView.route);
                     },
                   ),
                   ListTile(
