@@ -5,6 +5,7 @@ import 'package:yande/dao/init_dao.dart';
 import 'package:yande/http/yande/YandeHttpDataSource.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/model/tag_model.dart';
+import 'package:yande/service/downloadService.dart';
 import 'package:yande/service/settingService.dart';
 
 class Application {
@@ -43,6 +44,7 @@ class Application {
   Future<void> _bootstrap() async {
     await SettingService.initSetting();
     await getFilterRank();
+    await DownloadService.syncDownloadStatus();
   }
 
   Future<void> getFilterRank() async {
@@ -76,6 +78,8 @@ abstract class AppDaoDataSource extends AppDataSource {
   Future<void> updateDownloadImageStatus(ImageModel image);
   Future<void> collectImage(ImageModel image);
   Future<List<ImageModel>> getAllCollectedImage();
+  Future<List<ImageModel>> getAllDownloadedImage();
+  Future<void> resetDownloadStatus(int id);
   Future<void> saveTag(TagModel tag);
   Future<List<TagModel>> getAllCollectTag();
   Future<List<TagModel>> getAllBlockTag();

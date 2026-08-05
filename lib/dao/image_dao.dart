@@ -111,6 +111,39 @@ class ImageDao {
     }
   }
 
+  Future<List<ImageModel>> getAllDownloadedImage() async {
+    final db = await source.getDatabase();
+    try {
+      final list = await db.query(
+        MyDateBaseValue.Image,
+        where: '${ImageTableColumn.downloadStatus} = ?',
+        whereArgs: <Object?>[ImageDownloadStatus.success.index],
+      );
+      return list
+          .map((item) => ImageModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    } catch (e) {
+      return <ImageModel>[];
+    }
+  }
+
+  Future<void> resetDownloadStatus(int id) async {
+    final db = await source.getDatabase();
+    try {
+      await db.update(
+        MyDateBaseValue.Image,
+        <String, Object?>{
+          ImageTableColumn.downloadStatus: ImageDownloadStatus.none.index,
+          ImageTableColumn.downloadPath: null,
+        },
+        where: '${ImageTableColumn.id} = ?',
+        whereArgs: <Object?>[id],
+      );
+    } catch (e) {
+      // ???????
+    }
+  }
+
   Future<void> updateCollectStatus(
     ImageModel image, [
     Database? database,

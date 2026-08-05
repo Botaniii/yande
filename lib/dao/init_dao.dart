@@ -178,6 +178,16 @@ class DaoDataSource implements AppDaoDataSource {
   }
 
   @override
+  Future<List<ImageModel>> getAllDownloadedImage() {
+    return _imageDao.getAllDownloadedImage();
+  }
+
+  @override
+  Future<void> resetDownloadStatus(int id) {
+    return _imageDao.resetDownloadStatus(id);
+  }
+
+  @override
   Future<void> saveTag(TagModel tag) {
     return _tagDao.saveTag(tag);
   }

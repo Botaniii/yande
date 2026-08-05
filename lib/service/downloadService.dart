@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:yande/appliction.dart';
 import 'package:yande/dao/init_dao.dart';
@@ -7,6 +9,19 @@ import 'package:yande/utils/storageAccess.dart';
 import 'package:yande/utils/utils.dart';
 
 class DownloadService {
+  /// ???????????????????????????????
+  static Future<void> syncDownloadStatus() async {
+    final source = Application.getInstance().dataPool
+        .getSource(DaoDataSource.name) as AppDaoDataSource;
+    final downloaded = await source.getAllDownloadedImage();
+    for (final image in downloaded) {
+      final path = image.downloadPath;
+      if (path == null || path.isEmpty || !await File(path).exists()) {
+        await source.resetDownloadStatus(image.id ?? -1);
+      }
+    }
+  }
+
   static Future<void> downloadImage(
     ImageModel image, {
     ProgressCallback? onProcess,
