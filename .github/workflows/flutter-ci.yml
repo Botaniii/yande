@@ -47,7 +47,7 @@ jobs:
           YANDE_STORE_PASSWORD: ${{ secrets.YANDE_STORE_PASSWORD }}
           YANDE_KEY_ALIAS: ${{ secrets.YANDE_KEY_ALIAS }}
           YANDE_KEY_PASSWORD: ${{ secrets.YANDE_KEY_PASSWORD }}
-        run: flutter build apk --release
+        run: flutter build apk --release --target-platform android-arm64,android-arm
 
       - name: Rename release APK
         if: startsWith(github.ref, 'refs/tags/')
