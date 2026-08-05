@@ -20,12 +20,7 @@ class SettingService {
     if (prefs.getBool('initSetting') != true || force == true) {
       for (final item in settingList) {
         if (item.name == SETTING_TYPE.IMAGE_DOWNLOAD_PATH) {
-          final appDocDir = await getApplicationDocumentsDirectory();
-          final yandeImageDir = Directory('${appDocDir.path}/yandeImage');
-          if (!await yandeImageDir.exists()) {
-            await yandeImageDir.create(recursive: true);
-          }
-          item.value = yandeImageDir.path;
+          item.value = await getDefaultDownloadDir();
           await saveSetting(item);
         } else if (item.name == SETTING_TYPE.FILTER_RANK) {
           await saveSetting(item);
@@ -33,7 +28,44 @@ class SettingService {
       }
       await prefs.setBool('initSetting', true);
     } else {
+      await migrateLegacyDownloadPath();
       await getAllSetting();
+    }
+  }
+
+  /// 默认下载目录：公共 Download/yande；创建失败时回退到应用文档目录。
+  static Future<String> getDefaultDownloadDir() async {
+    const publicDownload = '/storage/emulated/0/Download/yande';
+    try {
+      final dir = Directory(publicDownload);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      return dir.path;
+    } catch (_) {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final fallback = Directory('${appDocDir.path}/yandeImage');
+      if (!await fallback.exists()) {
+        await fallback.create(recursive: true);
+      }
+      return fallback.path;
+    }
+  }
+
+  /// 老版本默认路径是应用文档目录下的 yandeImage，平滑迁移到 Download/yande。
+  static Future<void> migrateLegacyDownloadPath() async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getString(SETTING_TYPE.IMAGE_DOWNLOAD_PATH);
+    if (current == null || current.isEmpty) {
+      return;
+    }
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final legacyDefault = Directory('${appDocDir.path}/yandeImage').path;
+    if (current == legacyDefault) {
+      await saveSetting(SettingItem(
+        name: SETTING_TYPE.IMAGE_DOWNLOAD_PATH,
+        value: await getDefaultDownloadDir(),
+      ));
     }
   }
 

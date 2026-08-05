@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yande/utils/storageAccess.dart';
 import 'package:yande/model/image_model.dart';
 import 'package:yande/service/downloadService.dart';
 import 'package:yande/service/imageServive.dart';
@@ -107,7 +108,12 @@ class _IndexView extends State<IndexView> {
       if (mounted) {
         setState(() {});
       }
-      await DownloadService.downloadImage(image);
+              try {
+          await DownloadService.downloadImage(image);
+        } on StoragePermissionException {
+          _showMessageBySnackbar('需要开启“所有文件访问”才能保存到该目录');
+          await StorageAccess.openSettings();
+        }
       if (mounted) {
         setState(() {});
       }

@@ -2,6 +2,9 @@
 
     <!-- Required for network access to yande.re. Dropped during the v2 migration, breaking all release builds. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Storage permissions: legacy WRITE for API 24-28, MANAGE_EXTERNAL_STORAGE for API 30+ (enable "All files access" in system settings) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
     <application
         android:label="yande"
         android:name="${applicationName}"
