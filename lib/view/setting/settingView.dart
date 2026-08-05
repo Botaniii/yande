@@ -136,9 +136,7 @@ class _SettingViewState extends State<SettingView> {
             showDialog(
               context: context,
               builder: (context) => UpdateDialog(
-                version: githubRelease.tagName,
-                text: githubRelease.body,
-                url: githubRelease.htmlUrl,
+                release: githubRelease,
               ),
             );
           }

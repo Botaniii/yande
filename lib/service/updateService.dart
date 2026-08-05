@@ -3,6 +3,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:yande/http/all_api.dart';
 import 'package:yande/model/github_model.dart';
 import 'package:yande/service/settingService.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:yande/utils/apkInstaller.dart';
 
 typedef ShouldUpdateCallback = void Function(GithubReleaseModel);
 
@@ -45,12 +48,49 @@ class UpdateService {
     }
   }
 
+  /// ?? release ? APK ??????????
+  static Future<void> downloadAndInstall(
+    GithubReleaseModel release, {
+    ProgressCallback? onProcess,
+  }) async {
+    GithubAssets? apkAsset;
+    for (final asset in release.assets ?? <GithubAssets>[]) {
+      if ((asset.name ?? '').endsWith('.apk')) {
+        apkAsset = asset;
+        break;
+      }
+    }
+    final apkUrl = apkAsset?.browserDownloadUrl;
+    if (apkUrl == null) {
+      throw StateError('release has no apk asset');
+    }
+
+    final dir = await getApplicationSupportDirectory();
+    final apkDir = Directory('${dir.path}/apk');
+    await apkDir.create(recursive: true);
+    final target = '${apkDir.path}/yande-${release.tagName}.apk';
+    if (!await File(target).exists()) {
+      await Dio().download(apkUrl, target, onReceiveProgress: onProcess);
+    }
+
+    if (!await ApkInstaller.canRequestInstall()) {
+      throw const InstallPermissionException();
+    }
+    await ApkInstaller.install(target);
+  }
+
+
   static Future<void> ignoreUpdateVersion(String version) async {
     await SettingService.saveSetting(
       SettingItem(name: UpdateValue.ignoreVersion, value: version),
     );
   }
 }
+
+class InstallPermissionException implements Exception {
+  const InstallPermissionException();
+}
+
 
 class UpdateValue {
   static const String ignoreVersion = 'ignoreVersion';
