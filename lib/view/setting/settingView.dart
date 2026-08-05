@@ -115,8 +115,8 @@ class _SettingViewState extends State<SettingView> {
 
   Widget _buildCheckUpdateItem() {
     return ListTile(
-      title: const Text('????'),
-      subtitle: const Text('?? GitHub ???????'),
+      title: const Text('检查更新'),
+      subtitle: const Text('检查 GitHub 上是否有新版本'),
       trailing: const Icon(Icons.system_update_alt),
       onTap: _checkUpdate,
     );
@@ -125,7 +125,7 @@ class _SettingViewState extends State<SettingView> {
   void _checkUpdate() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('???????'),
+        content: Text('正在检查更新…'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -143,13 +143,13 @@ class _SettingViewState extends State<SettingView> {
         },
         onUpToDate: () {
           if (mounted) {
-            _showMessageBySnackbar('??????');
+            _showMessageBySnackbar('已是最新版本');
           }
         },
       );
     } catch (_) {
       if (mounted) {
-        _showMessageBySnackbar('????????????');
+        _showMessageBySnackbar('检查更新失败，请稍后再试');
       }
     }
   }
