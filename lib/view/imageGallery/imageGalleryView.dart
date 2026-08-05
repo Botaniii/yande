@@ -30,8 +30,8 @@ class _ImageGalleryViewState extends State<ImageGalleryView> {
           imageUrl: widget.image.sampleUrl ?? '',
           fit: BoxFit.contain,
           placeholder: const Center(child: CircularProgressIndicator()),
-          builder: (context, file) => PhotoView(
-            imageProvider: FileImage(file),
+          builder: (context, bytes) => PhotoView(
+            imageProvider: MemoryImage(bytes),
             backgroundDecoration: const BoxDecoration(color: Colors.black),
           ),
         ),

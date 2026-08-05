@@ -1,21 +1,19 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:yande/service/cacheService.dart';
 import 'package:yande/widget/progress.dart';
 
-/// 加载失败可自动重试的网络图片组件。
+/// 网络图片加载组件（直接下载字节流渲染，不做缓存管理）。
 ///
-/// yande.re 的图片节点不稳定且 DNS 会轮换，一次失败不代表永久失败：
-/// 失败时先清理缓存条目，间隔重试数次，若仍失败则显示“点击重试”。
-typedef RetryableImageBuilder = Widget Function(BuildContext context, File file);
+/// yande.re 的图片节点不稳定，一次失败不代表永久失败：
+/// 请求失败后显示“点击重试”，每次点击都是一次全新请求。
+typedef RetryableImageBuilder = Widget Function(BuildContext context, Uint8List bytes);
 
 class RetryableCachedImage extends StatefulWidget {
   final String imageUrl;
   final BoxFit fit;
   final Widget placeholder;
-  final int maxRetries;
-  final Duration retryDelay;
 
   /// 自定义成功后的展示方式（例如 PhotoView 全屏查看）。
   final RetryableImageBuilder? builder;
@@ -25,8 +23,6 @@ class RetryableCachedImage extends StatefulWidget {
     required this.imageUrl,
     this.fit = BoxFit.cover,
     this.placeholder = const ImageCardCircularProgressIndicator(),
-    this.maxRetries = 3,
-    this.retryDelay = const Duration(seconds: 3),
     this.builder,
   });
 
@@ -35,10 +31,17 @@ class RetryableCachedImage extends StatefulWidget {
 }
 
 class _RetryableCachedImageState extends State<RetryableCachedImage> {
-  File? _file;
-  int _attempt = 0;
+  /// 组件级共享 dio：带超时，避免重复创建。
+  static final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
+
+  Uint8List? _bytes;
   bool _failed = false;
-  Timer? _timer;
+  int _requestSeq = 0;
 
   @override
   void initState() {
@@ -50,17 +53,16 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
   void didUpdateWidget(covariant RetryableCachedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageUrl != widget.imageUrl) {
-      _timer?.cancel();
-      _file = null;
+      _requestSeq++;
+      _bytes = null;
       _failed = false;
-      _attempt = 0;
       _load();
     }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _requestSeq++;
     super.dispose();
   }
 
@@ -71,47 +73,52 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
       }
       return;
     }
+    final seq = ++_requestSeq;
+    if (mounted) {
+      setState(() {
+        _failed = false;
+      });
+    }
     try {
-      final file = await CacheService.getFile(widget.imageUrl);
-      if (!mounted) {
+      final response = await _dio.get<List<int>>(
+        widget.imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final data = response.data;
+      if (data == null || data.isEmpty) {
+        throw StateError('empty image bytes: ${widget.imageUrl}');
+      }
+      final bytes = Uint8List.fromList(data);
+      if (!mounted || seq != _requestSeq) {
         return;
       }
       setState(() {
-        _file = file;
+        _bytes = Uint8List.fromList(bytes);
         _failed = false;
       });
-    } catch (_) {
-      // 清掉可能残留的失败/半截缓存，确保下次请求全新下载。
-      await CacheService.removeFile(widget.imageUrl);
-      if (!mounted) {
+    } catch (e) {
+      debugPrint('RetryableCachedImage load failed: $e url=${widget.imageUrl}');
+      if (!mounted || seq != _requestSeq) {
         return;
       }
-      if (_attempt < widget.maxRetries) {
-        _attempt++;
-        _timer = Timer(widget.retryDelay, _load);
-      } else {
-        setState(() => _failed = true);
-      }
+      setState(() {
+        _failed = true;
+      });
     }
   }
 
   void _retryManually() {
-    setState(() {
-      _file = null;
-      _failed = false;
-      _attempt = 0;
-    });
     _load();
   }
 
   @override
   Widget build(BuildContext context) {
-    final file = _file;
-    if (file != null && file.existsSync()) {
+    final bytes = _bytes;
+    if (bytes != null) {
       if (widget.builder != null) {
-        return widget.builder!(context, file);
+        return widget.builder!(context, bytes);
       }
-      return Image.file(file, fit: widget.fit);
+      return Image.memory(bytes, fit: widget.fit, gaplessPlayback: true);
     }
     if (_failed) {
       return GestureDetector(
