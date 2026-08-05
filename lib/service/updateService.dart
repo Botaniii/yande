@@ -19,7 +19,7 @@ class UpdateService {
     final item = await SettingService.getSetting(UpdateValue.ignoreVersion);
 
     if (githubReleaseModel.tagName != item.value &&
-        packageInfo.version != githubReleaseModel.tagName) {
+        packageInfo.version != githubReleaseModel.tagName?.replaceFirst("v", "")) {
       shouldUpdate?.call(githubReleaseModel);
     }
   }

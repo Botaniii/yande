@@ -9,6 +9,6 @@ class IndexAPI {
 }
 
 class GithubApi {
-  static final String latestApi = 'https://api.github.com/repos/xiao-po/yande/releases/latest';
+  static final String latestApi = 'https://api.github.com/repos/Botaniii/yande/releases/latest';
 }
 
