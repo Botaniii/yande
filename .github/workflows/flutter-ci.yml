@@ -60,8 +60,23 @@ jobs:
           name: yande-apk
           path: build/app/outputs/flutter-apk/*.apk
 
+      - name: Extract release notes
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          python3 - <<'PYEOF'
+          import re
+          from pathlib import Path
+          tag = "${{ github.ref_name }}"
+          text = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          blocks = re.split(r"(?m)^## ", text)
+          for block in blocks:
+              if block.startswith(tag):
+                  Path("release_notes.md").write_text("## " + block.rstrip() + "\n", encoding="utf-8")
+                  break
+          PYEOF
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: build/app/outputs/flutter-apk/yande-${{ github.ref_name }}.apk
+          body_path: release_notes.md

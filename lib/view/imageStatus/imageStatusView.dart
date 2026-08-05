@@ -154,8 +154,7 @@ class _ImageStatusView extends State<ImageStatusView> {
   }
 
   void downloadAction(ImageModel image) async {
-    if (image.downloadStatus != ImageDownloadStatus.pending &&
-        image.downloadStatus != ImageDownloadStatus.success) {
+    if (image.downloadStatus != ImageDownloadStatus.pending) {
       _showMessageBySnackbar('开始下载');
       if (mounted) {
         setState(() {});
