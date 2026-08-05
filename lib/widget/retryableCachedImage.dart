@@ -49,6 +49,8 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
   Uint8List? _bytes;
   bool _failed = false;
   int _requestSeq = 0;
+  Timer? _retryTimer;
+  bool _autoRetried = false;
 
   @override
   void initState() {
@@ -70,6 +72,7 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
   @override
   void dispose() {
     _requestSeq++;
+    _retryTimer?.cancel();
     super.dispose();
   }
 
@@ -80,6 +83,8 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
       }
       return;
     }
+    _autoRetried = false;
+    _retryTimer?.cancel();
     await _acquireSlot();
     final seq = ++_requestSeq;
     if (mounted) {
@@ -112,6 +117,12 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
       setState(() {
         _failed = true;
       });
+      // ??????? Clash ?????????? 3 ????????
+      // ???????????????????????????
+      if (!_autoRetried) {
+        _autoRetried = true;
+        _retryTimer = Timer(const Duration(seconds: 3), _load);
+      }
     } finally {
       _releaseSlot();
     }
@@ -149,22 +160,33 @@ class _RetryableCachedImageState extends State<RetryableCachedImage> {
       return Image.memory(bytes, fit: widget.fit, gaplessPlayback: true);
     }
     if (_failed) {
-      return GestureDetector(
-        onTap: _retryManually,
-        behavior: HitTestBehavior.opaque,
-        child: Center(
-          child: Column(
+      // 失败时不拦截点击：点击卡片会落到外层 GestureDetector 进入详情页
+      //（大图 sample 是好的），小刷新按钮用于单独重试缩略图。
+      return Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          const ColoredBox(color: Color(0x11000000)),
+          Column(
             mainAxisSize: MainAxisSize.min,
-            children: const <Widget>[
-              Icon(Icons.refresh, color: Colors.black38, size: 26),
-              SizedBox(height: 4),
-              Text(
-                '加载失败，点击重试',
-                style: TextStyle(color: Colors.black45, fontSize: 12),
+            children: <Widget>[
+              IconButton(
+                onPressed: _retryManually,
+                icon: const Icon(Icons.refresh, color: Colors.black45, size: 22),
+tooltip: '重试缩略图',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              const Text(
+                '缩略图加载失败',
+                style: TextStyle(color: Colors.black45, fontSize: 11),
+              ),
+              const Text(
+                '点击查看大图',
+                style: TextStyle(color: Colors.black38, fontSize: 10),
               ),
             ],
           ),
-        ),
+        ],
       );
     }
     return widget.placeholder;

@@ -1,7 +1,7 @@
 name: yande
 description: A third-party yande.re client.
 publish_to: 'none'
-version: 1.0.20+1
+version: 1.0.21+1
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
